@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#5b7fff">
+<link rel="manifest" href="./manifest.json">
+<title>初级经济师每日一练 - 科目选择</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f0f2f8;color:#1a1a2e;line-height:1.6}
+
+/* 顶部切换栏 */
+#subject-bar{
+  position:fixed;top:0;left:0;right:0;z-index:9998;
+  background:linear-gradient(135deg,#5b7fff,#7c3aed);
+  display:flex;align-items:center;padding:0 12px;
+  height:50px;box-shadow:0 2px 16px rgba(91,127,255,.4);
+}
+#subject-bar .bar-title{
+  flex:1;font-size:16px;font-weight:800;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.subj-btn{
+  padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;
+  cursor:pointer;border:2px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.15);color:#fff;
+  transition:all .2s;white-space:nowrap;margin-left:6px;
+}
+.subj-btn.active{
+  background:#fff;color:#5b7fff;border-color:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+#fullscreen-btn{
+  padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;
+  cursor:pointer;border:2px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.15);color:#fff;
+  transition:all .2s;white-space:nowrap;margin-left:6px;
+}
+#fullscreen-btn:hover{background:rgba(255,255,255,.3)}
+
+/* iframe 容器 */
+#iframe-wrap{
+  position:fixed;top:50px;left:0;right:0;bottom:0;
+  background:#f0f2f8;
+}
+.app-frame{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border:none;
+  display:none;
+}
+.app-frame.active{display:block}
+
+/* 首次加载遮罩 */
+#loading-mask{
+  position:fixed;inset:0;top:50px;
+  background:#f0f2f8;z-index:9000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.spinner{
+  width:40px;height:40px;border:4px solid #e5e7eb;
+  border-top-color:#5b7fff;border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.loading-text{margin-top:16px;font-size:14px;color:#9ca3af}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 小提示 */
+#tip-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:9998;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  padding:8px 16px;font-size:12px;color:#9ca3af;
+  border-top:1px solid #e5e7eb;
+  text-align:center;
+  display:none;
+}
+#tip-bar.show{display:block}
+
+/* ===== 音乐播放器 ===== */
+
+/* 悬浮音乐按钮 */
+#music-toggle-btn{
+  position:fixed;bottom:22px;right:22px;z-index:9997;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(102,126,234,.5);
+  transition:all .3s;
+  font-size:22px;
+}
+#music-toggle-btn:hover{
+  transform:scale(1.1);
+  box-shadow:0 6px 28px rgba(102,126,234,.7);
+}
+#music-toggle-btn.playing{
+  animation:pulse-music 2s ease-in-out infinite;
+}
+@keyframes pulse-music{
+  0%,100%{box-shadow:0 4px 20px rgba(102,126,234,.5);}
+  50%{box-shadow:0 4px 32px rgba(118,75,162,.8),0 0 0 8px rgba(102,126,234,.15);}
+}
+
+/* 音乐面板 */
+#music-panel{
+  position:fixed;bottom:84px;right:16px;z-index:9997;
+  width:290px;
+  background:rgba(8,15,35,.92);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(102,126,234,.35);
+  border-radius:16px;
+  padding:16px;
+  display:none;
+  box-shadow:0 12px 48px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);
+  color:#e0e8ff;
+}
+#music-panel.show{display:block}
+
+/* 音乐面板顶栏 */
+.mp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.mp-top-label{
+  font-size:11px;font-weight:700;color:#667eea;
+  letter-spacing:1.5px;text-transform:uppercase;
+}
+.mp-close-btn{
+  background:rgba(255,255,255,.08);border:none;cursor:pointer;
+  color:#8899cc;font-size:16px;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.mp-close-btn:hover{background:rgba(255,255,255,.18);color:#fff;}
+
+/* 当前歌曲名 */
+.mp-now{
+  font-size:14px;font-weight:700;color:#fff;
+  margin-bottom:10px;padding:8px 10px;
+  background:rgba(102,126,234,.15);
+  border-radius:8px;border-left:3px solid #667eea;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.mp-no-song{color:#8899cc;font-size:13px;}
+
+/* 进度条 */
+.mp-progress-wrap{
+  margin-bottom:10px;
+}
+.mp-progress-bar{
+  width:100%;height:4px;background:rgba(255,255,255,.1);
+  border-radius:2px;cursor:pointer;position:relative;
+}
+.mp-progress-fill{
+  height:100%;background:linear-gradient(90deg,#667eea,#764ba2);
+  border-radius:2px;width:0%;transition:width .3s;
+}
+.mp-time{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:#8899cc;margin-top:4px;
+}
+
+/* 控制按钮 */
+.mp-controls{
+  display:flex;align-items:center;justify-content:center;
+  gap:10px;margin-bottom:12px;
+}
+.mp-ctrl-btn{
+  background:rgba(255,255,255,.08);border:none;cursor:pointer;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;color:#e0e8ff;
+}
+.mp-ctrl-btn:hover{background:rgba(255,255,255,.2);transform:scale(1.1);}
+.mp-ctrl-btn.big{
+  width:48px;height:48px;font-size:20px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  box-shadow:0 4px 16px rgba(102,126,234,.4);
+}
+.mp-ctrl-btn.big:hover{
+  box-shadow:0 6px 24px rgba(102,126,234,.6);
+  background:linear-gradient(135deg,#7a8ef0,#8a5cb8);
+}
+.mp-ctrl-btn.small{width:36px;height:36px;font-size:14px;}
+
+/* 音量 */
+.mp-vol{
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.mp-vol-icon{font-size:14px;cursor:pointer;flex-shrink:0;color:#8899cc;}
+.mp-vol-slider{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;
+  background:rgba(255,255,255,.15);outline:none;cursor:pointer;
+}
+.mp-vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  background:#667eea;cursor:pointer;
+  box-shadow:0 2px 6px rgba(102,126,234,.5);
+}
+.mp-vol-slider::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;border:none;
+  background:#667eea;cursor:pointer;
+}
+
+/* 歌单标题 */
+.mp-list-title{
+  font-size:11px;font-weight:700;color:#667eea;
+  letter-spacing:1px;margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* 歌单列表 */
+.mp-list{
+  max-height:180px;overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(102,126,234,.4) transparent;
+}
+.mp-list::-webkit-scrollbar{width:4px;}
+.mp-list::-webkit-scrollbar-track{background:transparent;}
+.mp-list::-webkit-scrollbar-thumb{background:rgba(102,126,234,.4);border-radius:2px;}
+
+.mp-song-item{
+  display:flex;align-items:center;padding:7px 10px;
+  border-radius:8px;cursor:pointer;transition:all .2s;
+  font-size:13px;color:#c0ccf0;
+  gap:8px;
+}
+.mp-song-item:hover{background:rgba(102,126,234,.15);}
+.mp-song-item.active{
+  background:rgba(102,126,234,.25);
+  color:#fff;
+  border-left:2px solid #667eea;
+}
+.mp-song-num{font-size:11px;opacity:.5;min-width:18px;}
+.mp-song-name{
+  flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.mp-song-playing{
+  font-size:11px;color:#667eea;flex-shrink:0;
+  animation:pulse-dot 1.2s ease-in-out infinite;
+}
+@keyframes pulse-dot{
+  0%,100%{opacity:1}
+  50%{opacity:.3}
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部切换栏 -->
+<div id="subject-bar">
+  <div class="bar-title" id="bar-title">📚 初级经济师每日一练</div>
+  <button class="subj-btn active" id="btn-econ" onclick="switchSubject('econ')">📊 经济基础</button>
+  <button class="subj-btn" id="btn-biz" onclick="switchSubject('biz')">🏢 工商管理</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="全屏">⛶</button>
+</div>
+
+<!-- 加载遮罩 -->
+<div id="loading-mask">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">加载中...</div>
+</div>
+
+<!-- iframe 容器 -->
+<div id="iframe-wrap">
+  <iframe id="frame-econ" class="app-frame active" src="每日一练_初级经济师_v5_0410_2115.html"></iframe>
+  <iframe id="frame-biz"   class="app-frame"       src="每日一练_初级工商管理_最终版.html"></iframe>
+</div>
+
+<!-- 底部提示 -->
+<div id="tip-bar">💡 提示：首次使用需在各科目内登录，建议使用右上角 ⛶ 全屏获得最佳体验</div>
+
+<!-- ===== 音乐播放器 ===== -->
+<audio id="bg-audio" preload="none"></audio>
+
+<!-- 悬浮音乐按钮 -->
+<button id="music-toggle-btn" onclick="toggleMusicPanel()" title="音乐播放器">
+  🎵
+</button>
+
+<!-- 音乐面板 -->
+<div id="music-panel">
+  <div class="mp-top">
+    <span class="mp-top-label">🎧 背景音乐</span>
+    <button class="mp-close-btn" onclick="toggleMusicPanel()">✕</button>
+  </div>
+
+  <!-- 当前歌曲 -->
+  <div class="mp-now" id="mp-now">
+    <span class="mp-no-song">点击下方歌曲开始播放</span>
+  </div>
+
+  <!-- 进度条 -->
+  <div class="mp-progress-wrap">
+    <div class="mp-progress-bar" id="mp-progress-bar" onclick="seekAudio(event)">
+      <div class="mp-progress-fill" id="mp-progress-fill"></div>
+    </div>
+    <div class="mp-time">
+      <span id="mp-time-current">0:00</span>
+      <span id="mp-time-total">0:00</span>
+    </div>
+  </div>
+
+  <!-- 控制按钮 -->
+  <div class="mp-controls">
+    <button class="mp-ctrl-btn small" onclick="prevSong()" title="上一首">⏮</button>
+    <button class="mp-ctrl-btn big" id="mp-play-btn" onclick="togglePlay()" title="播放/暂停">▶</button>
+    <button class="mp-ctrl-btn small" onclick="nextSong()" title="下一首">⏭</button>
+  </div>
+
+  <!-- 音量 -->
+  <div class="mp-vol">
+    <span class="mp-vol-icon" id="mp-vol-icon" onclick="toggleMute()">🔊</span>
+    <input type="range" class="mp-vol-slider" id="mp-vol" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)">
+  </div>
+
+  <!-- 歌单 -->
+  <div class="mp-list-title">📋 歌单</div>
+  <div class="mp-list" id="mp-list"></div>
+</div>
+
+<script>
+// ---------- 配置 ----------
+var APPS = {
+  econ: {
+    title: '📚 初级经济师每日一练',
+    frame: 'frame-econ',
+    file: '每日一练_初级经济师_v5_0410_2115.html',
+    btn: 'btn-econ'
+  },
+  biz: {
+    title: '🏢 工商管理每日一练',
+    frame: 'frame-biz',
+    file: '每日一练_初级工商管理_最终版.html',
+    btn: 'btn-biz'
+  }
+};
+
+var currentSubject = 'econ';
+var isFullscreen = false;
+
+// ---------- 音乐播放器 ----------
+var PLAYLIST = [
+  { name: '在你的身边 (DJ版)',        file: 'song01.ogg' },
+  { name: '黯',                     file: 'song02.mp3' },
+  { name: '爱的原点',               file: 'song03.mp3' },
+  { name: '故事',                   file: 'song04.mp3' },
+  { name: '倒叙记忆',               file: 'song05.mp3' },
+  { name: '夏天的歌',               file: 'song06.mp3' },
+  { name: '靠近',                   file: 'song07.mp3' },
+  { name: '安静',                   file: 'song08.mp3' },
+  { name: 'Do It For The Show',    file: 'song09.mp3' }
+];
+
+var audio = document.getElementById('bg-audio');
+var currentSongIndex = parseInt(localStorage.getItem('music_songIdx') || '0');
+var isPanelOpen = false;
+var wasPlaying = false;
+
+// 初始化
+audio.volume = parseFloat(localStorage.getItem('music_vol') || '0.5');
+document.getElementById('mp-vol').value = audio.volume;
+updateVolIcon();
+
+function buildPlaylist() {
+  var list = document.getElementById('mp-list');
+  list.innerHTML = '';
+  PLAYLIST.forEach(function(song, i) {
+    var item = document.createElement('div');
+    item.className = 'mp-song-item' + (i === currentSongIndex ? ' active' : '');
+    item.innerHTML =
+      '<span class="mp-song-num">' + String(i + 1).padStart(2, '0') + '</span>' +
+      '<span class="mp-song-name">' + song.name + '</span>' +
+      (i === currentSongIndex && !audio.paused
+        ? '<span class="mp-song-playing">●</span>'
+        : '');
+    item.onclick = (function(idx) {
+      return function() { playSong(idx); };
+    })(i);
+    list.appendChild(item);
+  });
+}
+
+function playSong(idx) {
+  currentSongIndex = idx;
+  localStorage.setItem('music_songIdx', idx);
+  audio.src = PLAYLIST[idx].file;
+  audio.play().catch(function() {});
+  updateNowPlaying();
+  updatePlaylistHighlight();
+  document.getElementById('mp-play-btn').textContent = '⏸';
+  document.getElementById('music-toggle-btn').classList.add('playing');
+}
+
+function updateNowPlaying() {
+  var el = document.getElementById('mp-now');
+  el.innerHTML = '<span style="font-size:12px;color:#667eea">▶</span> ' + PLAYLIST[currentSongIndex].name;
+}
+
+function updatePlaylistHighlight() {
+  var items = document.querySelectorAll('.mp-song-item');
+  items.forEach(function(item, i) {
+    item.classList.toggle('active', i === currentSongIndex);
+    var dot = item.querySelector('.mp-song-playing');
+    if (dot) dot.remove();
+    if (i === currentSongIndex && !audio.paused) {
+      var playing = document.createElement('span');
+      playing.className = 'mp-song-playing';
+      playing.textContent = '●';
+      item.appendChild(playing);
+    }
+  });
+}
+
+function togglePlay() {
+  if (!audio.src || audio.src === window.location.href) {
+    playSong(currentSongIndex);
+    return;
+  }
+  if (audio.paused) {
+    audio.play().catch(function() {});
+    document.getElementById('mp-play-btn').textContent = '⏸';
+    document.getElementById('music-toggle-btn').classList.add('playing');
+  } else {
+    audio.pause();
+    document.getElementById('mp-play-btn').textContent = '▶';
+    document.getElementById('music-toggle-btn').classList.remove('playing');
+  }
+  updatePlaylistHighlight();
+}
+
+function prevSong() {
+  var idx = (currentSongIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+  playSong(idx);
+}
+
+function nextSong() {
+  var idx = (currentSongIndex + 1) % PLAYLIST.length;
+  playSong(idx);
+}
+
+function setVolume(val) {
+  audio.volume = parseFloat(val);
+  localStorage.setItem('music_vol', val);
+  updateVolIcon();
+}
+
+function toggleMute() {
+  if (audio.volume > 0) {
+    wasPlaying = !audio.paused;
+    audio.volume = 0;
+    document.getElementById('mp-vol').value = 0;
+  } else {
+    audio.volume = parseFloat(localStorage.getItem('music_vol') || '0.5');
+    document.getElementById('mp-vol').value = audio.volume;
+    if (wasPlaying) audio.play().catch(function() {});
+  }
+  updateVolIcon();
+}
+
+function updateVolIcon() {
+  var vol = audio.volume;
+  var icon = document.getElementById('mp-vol-icon');
+  if (vol === 0) {
+    icon.textContent = '🔇';
+  } else if (vol < 0.4) {
+    icon.textContent = '🔉';
+  } else if (vol < 0.8) {
+    icon.textContent = '🔊';
+  } else {
+    icon.textContent = '🔊';
+  }
+}
+
+function seekAudio(e) {
+  var bar = document.getElementById('mp-progress-bar');
+  var rect = bar.getBoundingClientRect();
+  var ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  if (audio.duration) {
+    audio.currentTime = ratio * audio.duration;
+  }
+}
+
+// 进度更新
+audio.addEventListener('timeupdate', function() {
+  if (!audio.duration) return;
+  var pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('mp-progress-fill').style.width = pct + '%';
+  document.getElementById('mp-time-current').textContent = fmtTime(audio.currentTime);
+});
+
+audio.addEventListener('loadedmetadata', function() {
+  document.getElementById('mp-time-total').textContent = fmtTime(audio.duration);
+  updatePlaylistHighlight();
+});
+
+audio.addEventListener('ended', function() {
+  nextSong();
+});
+
+audio.addEventListener('play', function() {
+  document.getElementById('mp-play-btn').textContent = '⏸';
+  document.getElementById('music-toggle-btn').classList.add('playing');
+});
+
+audio.addEventListener('pause', function() {
+  document.getElementById('mp-play-btn').textContent = '▶';
+  document.getElementById('music-toggle-btn').classList.remove('playing');
+  updatePlaylistHighlight();
+});
+
+function fmtTime(secs) {
+  if (!secs || isNaN(secs)) return '0:00';
+  var m = Math.floor(secs / 60);
+  var s = Math.floor(secs % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function toggleMusicPanel() {
+  isPanelOpen = !isPanelOpen;
+  var panel = document.getElementById('music-panel');
+  panel.classList.toggle('show', isPanelOpen);
+  if (isPanelOpen) {
+    // 自动播放当前歌曲（如果还没加载src）
+    if (!audio.src || audio.src === window.location.href) {
+      audio.src = PLAYLIST[currentSongIndex].file;
+      updateNowPlaying();
+    }
+    updatePlaylistHighlight();
+  }
+}
+
+// ---------- 切换科目 ----------
+function switchSubject(subj) {
+  if (subj === currentSubject) return;
+  currentSubject = subj;
+
+  Object.keys(APPS).forEach(function(key) {
+    var frame = document.getElementById(APPS[key].frame);
+    var btn   = document.getElementById(APPS[key].btn);
+    if (key === subj) {
+      frame.classList.add('active');
+      btn.classList.add('active');
+    } else {
+      frame.classList.remove('active');
+      btn.classList.remove('active');
+    }
+  });
+
+  document.getElementById('bar-title').textContent = APPS[subj].title;
+}
+
+// ---------- 全屏切换 ----------
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(function() {
+      isFullscreen = true;
+    }).catch(function(){});
+  } else {
+    document.exitFullscreen().then(function() {
+      isFullscreen = false;
+    }).catch(function(){});
+  }
+}
+
+// ---------- 等待 iframe 加载 ----------
+function onFrameReady(subj) {
+  document.getElementById('loading-mask').style.display = 'none';
+  document.getElementById('tip-bar').classList.add('show');
+  setTimeout(function() {
+    document.getElementById('tip-bar').classList.remove('show');
+  }, 5000);
+}
+
+window.onFrameReady = onFrameReady;
+window.switchSubject = switchSubject;
+
+// ---------- 转发用户名变化消息给另一个 iframe ----------
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'user_changed') return;
+  var username = e.data.username || '';
+  Object.values(APPS).forEach(function(app) {
+    try {
+      document.getElementById(app.frame).contentWindow.postMessage(e.data, '*');
+    } catch(err) {}
+  });
+});
+
+// ---------- 监听 iframe load ----------
+var loadedFrames = {};
+Object.keys(APPS).forEach(function(key) {
+  var frame = document.getElementById(APPS[key].frame);
+  frame.addEventListener('load', function() {
+    loadedFrames[key] = true;
+    if (key === currentSubject) {
+      onFrameReady(key);
+    }
+  });
+  if (key === currentSubject) {
+    setTimeout(function() {
+      if (!loadedFrames[key]) {
+        document.getElementById('loading-text').textContent =
+          '首次加载稍慢，请耐心等待...';
+      }
+    }, 3000);
+  }
+});
+
+if (location.protocol === 'file:') {
+  document.getElementById('fullscreen-btn').style.display = 'none';
+}
+
+// ---------- PWA Service Worker ----------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').catch(function() {});
+  });
+}
+
+// ---------- 初始化歌单 ----------
+buildPlaylist();
+if (localStorage.getItem('music_vol')) {
+  audio.volume = parseFloat(localStorage.getItem('music_vol'));
+}
+</script>
+</body>
+</html>
