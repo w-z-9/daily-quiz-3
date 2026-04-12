@@ -1,0 +1,11 @@
+{
+  "name": "初级经济师每日一练",
+  "short_name": "每日一练",
+  "description": "初级经济师 & 工商管理每日一练，含深海主题",
+  "start_url": "./每日一练_合并版.html",
+  "display": "standalone",
+  "background_color": "#f0f2f8",
+  "theme_color": "#5b7fff",
+  "orientation": "portrait",
+  "icons": []
+}
