@@ -2,625 +2,3077 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#5b7fff">
-<link rel="manifest" href="./manifest.json">
-<title>初级经济师每日一练 - 科目选择</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经济师考试每日一练</title>
+
+<!-- ============================================================
+     CSS样式区 - 后期可拆分为独立CSS文件
+     ============================================================ -->
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f0f2f8;color:#1a1a2e;line-height:1.6}
+/* ========== 基础重置 ========== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{overflow-y:scroll;scrollbar-gutter:stable}
 
-/* 顶部切换栏 */
-#subject-bar{
-  position:fixed;top:0;left:0;right:0;z-index:9998;
-  background:linear-gradient(135deg,#5b7fff,#7c3aed);
-  display:flex;align-items:center;padding:0 12px;
-  height:50px;box-shadow:0 2px 16px rgba(91,127,255,.4);
-}
-#subject-bar .bar-title{
-  flex:1;font-size:16px;font-weight:800;color:#fff;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.subj-btn{
-  padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;
-  cursor:pointer;border:2px solid rgba(255,255,255,.4);
-  background:rgba(255,255,255,.15);color:#fff;
-  transition:all .2s;white-space:nowrap;margin-left:6px;
-}
-.subj-btn.active{
-  background:#fff;color:#5b7fff;border-color:#fff;
-  box-shadow:0 4px 12px rgba(0,0,0,.2);
-}
-#fullscreen-btn{
-  padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;
-  cursor:pointer;border:2px solid rgba(255,255,255,.4);
-  background:rgba(255,255,255,.15);color:#fff;
-  transition:all .2s;white-space:nowrap;margin-left:6px;
-}
-#fullscreen-btn:hover{background:rgba(255,255,255,.3)}
-
-/* iframe 容器 */
-#iframe-wrap{
-  position:fixed;top:50px;left:0;right:0;bottom:0;
-  background:#f0f2f8;
-}
-.app-frame{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  border:none;
-  display:none;
-}
-.app-frame.active{display:block}
-
-/* 首次加载遮罩 */
-#loading-mask{
-  position:fixed;inset:0;top:50px;
-  background:#f0f2f8;z-index:9000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-}
-.spinner{
-  width:40px;height:40px;border:4px solid #e5e7eb;
-  border-top-color:#5b7fff;border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-.loading-text{margin-top:16px;font-size:14px;color:#9ca3af}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* 小提示 */
-#tip-bar{
-  position:fixed;bottom:0;left:0;right:0;z-index:9998;
-  background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
-  padding:8px 16px;font-size:12px;color:#9ca3af;
-  border-top:1px solid #e5e7eb;
-  text-align:center;
-  display:none;
-}
-#tip-bar.show{display:block}
-
-/* ===== 音乐播放器 ===== */
-
-/* 悬浮音乐按钮 */
-#music-toggle-btn{
-  position:fixed;bottom:22px;right:22px;z-index:9997;
-  width:52px;height:52px;border-radius:50%;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 20px rgba(102,126,234,.5);
-  transition:all .3s;
-  font-size:22px;
-}
-#music-toggle-btn:hover{
-  transform:scale(1.1);
-  box-shadow:0 6px 28px rgba(102,126,234,.7);
-}
-#music-toggle-btn.playing{
-  animation:pulse-music 2s ease-in-out infinite;
-}
-@keyframes pulse-music{
-  0%,100%{box-shadow:0 4px 20px rgba(102,126,234,.5);}
-  50%{box-shadow:0 4px 32px rgba(118,75,162,.8),0 0 0 8px rgba(102,126,234,.15);}
+/* ========== 主题变量 - 后期可扩展多主题 ========== */
+:root {
+  --primary-blue: #3b82f6;
+  --primary-green: #10b981;
+  --primary-purple: #8b5cf6;
+  --primary-orange: #f59e0b;
+  --bg-main: #f0f4f8;
+  --bg-card: rgba(255,255,255,0.95);
+  --text-primary: #333;
+  --text-secondary: #6b7280;
+  --border-light: rgba(59,130,246,0.1);
 }
 
-/* 音乐面板 */
-#music-panel{
-  position:fixed;bottom:84px;right:16px;z-index:9997;
-  width:290px;
-  background:rgba(8,15,35,.92);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(102,126,234,.35);
-  border-radius:16px;
-  padding:16px;
-  display:none;
-  box-shadow:0 12px 48px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);
-  color:#e0e8ff;
-}
-#music-panel.show{display:block}
-
-/* 音乐面板顶栏 */
-.mp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.mp-top-label{
-  font-size:11px;font-weight:700;color:#667eea;
-  letter-spacing:1.5px;text-transform:uppercase;
-}
-.mp-close-btn{
-  background:rgba(255,255,255,.08);border:none;cursor:pointer;
-  color:#8899cc;font-size:16px;width:26px;height:26px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .2s;
-}
-.mp-close-btn:hover{background:rgba(255,255,255,.18);color:#fff;}
-
-/* 当前歌曲名 */
-.mp-now{
-  font-size:14px;font-weight:700;color:#fff;
-  margin-bottom:10px;padding:8px 10px;
-  background:rgba(102,126,234,.15);
-  border-radius:8px;border-left:3px solid #667eea;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.mp-no-song{color:#8899cc;font-size:13px;}
-
-/* 进度条 */
-.mp-progress-wrap{
-  margin-bottom:10px;
-}
-.mp-progress-bar{
-  width:100%;height:4px;background:rgba(255,255,255,.1);
-  border-radius:2px;cursor:pointer;position:relative;
-}
-.mp-progress-fill{
-  height:100%;background:linear-gradient(90deg,#667eea,#764ba2);
-  border-radius:2px;width:0%;transition:width .3s;
-}
-.mp-time{
-  display:flex;justify-content:space-between;
-  font-size:10px;color:#8899cc;margin-top:4px;
+/* VIP专属主题变量 - 瑶瑶公主深海风格 */
+.vip-theme {
+  --primary-blue: #0ea5e9;
+  --primary-green: #06b6d4;
+  --bg-main: #f0f9ff;
+  --bg-card: rgba(255,255,255,0.98);
 }
 
-/* 控制按钮 */
-.mp-controls{
-  display:flex;align-items:center;justify-content:center;
-  gap:10px;margin-bottom:12px;
-}
-.mp-ctrl-btn{
-  background:rgba(255,255,255,.08);border:none;cursor:pointer;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;color:#e0e8ff;
-}
-.mp-ctrl-btn:hover{background:rgba(255,255,255,.2);transform:scale(1.1);}
-.mp-ctrl-btn.big{
-  width:48px;height:48px;font-size:20px;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  box-shadow:0 4px 16px rgba(102,126,234,.4);
-}
-.mp-ctrl-btn.big:hover{
-  box-shadow:0 6px 24px rgba(102,126,234,.6);
-  background:linear-gradient(135deg,#7a8ef0,#8a5cb8);
-}
-.mp-ctrl-btn.small{width:36px;height:36px;font-size:14px;}
+/* ========== 背景装饰 ========== */
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg-main);min-height:100vh;color:var(--text-primary);position:relative;overflow-x:hidden}
 
-/* 音量 */
-.mp-vol{
-  display:flex;align-items:center;gap:8px;margin-bottom:12px;
-}
-.mp-vol-icon{font-size:14px;cursor:pointer;flex-shrink:0;color:#8899cc;}
-.mp-vol-slider{
-  flex:1;-webkit-appearance:none;appearance:none;
-  height:4px;border-radius:2px;
-  background:rgba(255,255,255,.15);outline:none;cursor:pointer;
-}
-.mp-vol-slider::-webkit-slider-thumb{
-  -webkit-appearance:none;appearance:none;
-  width:14px;height:14px;border-radius:50%;
-  background:#667eea;cursor:pointer;
-  box-shadow:0 2px 6px rgba(102,126,234,.5);
-}
-.mp-vol-slider::-moz-range-thumb{
-  width:14px;height:14px;border-radius:50%;border:none;
-  background:#667eea;cursor:pointer;
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:100vh;background:linear-gradient(135deg,#e0e7ff 0%,#f0f4f8 30%,#ecfdf5 60%,#fef3c7 100%);opacity:0.6;z-index:-2}
+body::after{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:radial-gradient(circle at 20% 80%,rgba(59,130,246,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(16,185,129,0.08) 0%,transparent 50%),radial-gradient(circle at 40% 40%,rgba(245,158,11,0.05) 0%,transparent 40%);z-index:-1}
+
+/* ========== 漂浮装饰 ========== */
+.deco{position:fixed;pointer-events:none;z-index:0}
+.deco-circle{width:300px;height:300px;border-radius:50%;border:1px solid rgba(59,130,246,0.1)}
+.deco-1{top:5%;left:-100px;animation:floatSlow 20s ease-in-out infinite}
+.deco-2{bottom:10%;right:-80px;width:200px;height:200px;border-color:rgba(16,185,129,0.1);animation:floatSlow 25s ease-in-out infinite reverse}
+.deco-3{top:40%;right:5%;width:150px;height:150px;border-color:rgba(245,158,11,0.08);animation:floatSlow 18s ease-in-out infinite}
+
+.deco-dot{width:8px;height:8px;border-radius:50%;background:rgba(59,130,246,0.2)}
+.dot-1{top:15%;left:10%;animation:floatDot 8s ease-in-out infinite}
+.dot-2{top:25%;right:15%;width:6px;height:6px;background:rgba(16,185,129,0.2);animation:floatDot 10s ease-in-out infinite reverse}
+.dot-3{bottom:30%;left:8%;width:10px;height:10px;background:rgba(245,158,11,0.15);animation:floatDot 12s ease-in-out infinite}
+.dot-4{bottom:20%;right:12%;width:5px;height:5px;background:rgba(139,92,246,0.2);animation:floatDot 9s ease-in-out infinite reverse}
+
+.deco-line{width:60px;height:2px;background:linear-gradient(90deg,transparent,rgba(59,130,246,0.2),transparent)}
+.line-1{top:20%;right:8%;transform:rotate(45deg);animation:floatLine 15s ease-in-out infinite}
+.line-2{bottom:35%;left:5%;width:80px;transform:rotate(-30deg);background:linear-gradient(90deg,transparent,rgba(16,185,129,0.2),transparent);animation:floatLine 18s ease-in-out infinite reverse}
+
+@keyframes floatSlow{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(20px,30px) rotate(5deg)}}
+@keyframes floatDot{0%,100%{transform:translate(0,0)}50%{transform:translate(-15px,-20px)}}
+@keyframes floatLine{0%,100%{transform:rotate(45deg) translateX(0)}50%{transform:rotate(45deg) translateX(20px)}}
+
+/* ========== 主容器 ========== */
+.container{max-width:800px;margin:20px auto;padding:30px 35px;min-height:calc(100vh - 40px);display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border-light);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 0 0 1px rgba(255,255,255,0.8) inset;position:relative;z-index:1;backdrop-filter:blur(10px)}
+
+.container::before,.container::after{content:'';position:absolute;width:40px;height:40px;border-radius:12px;opacity:0.5}
+.container::before{top:15px;left:15px;background:linear-gradient(135deg,rgba(59,130,246,0.15),transparent);border:1px solid rgba(59,130,246,0.1)}
+.container::after{bottom:15px;right:15px;background:linear-gradient(135deg,rgba(16,185,129,0.15),transparent);border:1px solid rgba(16,185,129,0.1)}
+
+/* ========== 顶部栏 ========== */
+.header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-bottom:25px;border-bottom:1px solid var(--border-light);padding-bottom:20px}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--primary-blue),#1d4ed8);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 16px rgba(59,130,246,0.35),0 0 0 3px rgba(59,130,246,0.1);position:relative}
+.logo-icon::after{content:'';position:absolute;top:-3px;right:-3px;width:12px;height:12px;background:#10b981;border-radius:50%;border:2px solid #fff}
+.logo-text h1{font-size:1.35em;color:#1e3a5f;letter-spacing:-0.5px}
+.logo-text p{color:var(--text-secondary);font-size:0.82em;margin-top:3px}
+
+.header-actions{display:flex;gap:10px;align-items:center}
+.action-btn{width:42px;height:42px;background:linear-gradient(135deg,#fff,#f8fafc);border:1px solid #e5e7eb;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);font-size:1.2em;transition:all 0.25s;box-shadow:0 2px 4px rgba(0,0,0,0.04)}
+.action-btn:hover{background:linear-gradient(135deg,#eff6ff,#dbeafe);color:var(--primary-blue);border-color:#93c5fd;transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,130,246,0.15)}
+
+/* ========== 主内容区 ========== */
+.main{flex:1;display:flex;flex-direction:column;gap:25px}
+
+/* 欢迎区 */
+.welcome{text-align:center;padding:35px 25px;background:linear-gradient(135deg,#fff 0%,#fafbff 50%,#f0fdf4 100%);border-radius:20px;border:1px solid var(--border-light);box-shadow:0 2px 12px rgba(0,0,0,0.03);position:relative;overflow:hidden}
+.welcome::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary-blue),var(--primary-purple),var(--primary-green),var(--primary-orange))}
+.welcome::after{content:'';position:absolute;bottom:-50px;right:-50px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.05),transparent)}
+.welcome h2{font-size:1.5em;color:#1e3a5f;margin-bottom:8px}
+.welcome p{color:var(--text-secondary);font-size:0.95em}
+
+/* 今日统计 */
+.today-stats{display:flex;gap:18px;justify-content:center;margin-top:25px}
+.stat-card{background:#fff;border-radius:16px;padding:18px 28px;text-align:center;border:1px solid var(--border-light);box-shadow:0 2px 8px rgba(0,0,0,0.04);min-width:105px;position:relative;transition:all 0.3s}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(59,130,246,0.12)}
+.stat-card::before{content:'';position:absolute;top:8px;left:8px;width:6px;height:6px;border-radius:50%;background:var(--primary-blue);opacity:0.3}
+.stat-num{font-size:2.2em;font-weight:bold;background:linear-gradient(135deg,var(--primary-blue),#1d4ed8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{color:var(--text-secondary);font-size:0.8em;margin-top:5px}
+
+/* ========== 科目卡片 ========== */
+.subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.subject-card{background:linear-gradient(135deg,#fff 0%,#fafcfe 100%);border-radius:20px;padding:28px;border:2px solid transparent;background-clip:padding-box;cursor:pointer;transition:all 0.35s;text-decoration:none;color:inherit;box-shadow:0 2px 12px rgba(0,0,0,0.04);position:relative;overflow:hidden}
+.subject-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0}
+.subject-card.jj::before{background:linear-gradient(90deg,var(--primary-blue),var(--primary-purple))}
+.subject-card.gs::before{background:linear-gradient(90deg,var(--primary-green),#22c55e)}
+.subject-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,0.08)}
+.subject-card.jj:hover{border-color:rgba(59,130,246,0.3);background:linear-gradient(135deg,#fff 0%,#eff6ff 100%)}
+.subject-card.gs:hover{border-color:rgba(16,185,129,0.3);background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%)}
+
+.subject-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.subject-info h3{font-size:1.35em;color:#1e3a5f;margin-bottom:6px}
+.subject-info p{color:var(--text-secondary);font-size:0.88em}
+.subject-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.7em;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.subject-card.jj .subject-icon{background:linear-gradient(135deg,#dbeafe,#c7d2fe)}
+.subject-card.gs .subject-icon{background:linear-gradient(135deg,#d1fae5,#a7f3d0)}
+
+.subject-progress{margin-top:18px}
+.progress-bar{height:10px;background:#f1f5f9;border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative}
+.progress-bar::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.progress-fill{height:100%;border-radius:6px;transition:width 0.6s;position:relative}
+.subject-card.jj .progress-fill{background:linear-gradient(90deg,var(--primary-blue),var(--primary-purple))}
+.subject-card.gs .progress-fill{background:linear-gradient(90deg,var(--primary-green),#22c55e)}
+
+.progress-text{display:flex;justify-content:space-between;color:var(--text-secondary);font-size:0.78em}
+.progress-text span:first-child{color:#374151}
+
+.subject-meta{display:flex;gap:18px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(59,130,246,0.06)}
+.meta-item{display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:0.82em}
+.meta-item span{font-weight:600}
+.subject-card.jj .meta-item span{color:var(--primary-blue)}
+.subject-card.gs .meta-item span{color:var(--primary-green)}
+
+/* ========== 底部功能区 ========== */
+.footer-section{margin-top:25px}
+.footer-title{color:var(--text-secondary);font-size:0.88em;margin-bottom:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:10px}
+.footer-title::before,.footer-title::after{content:'';width:30px;height:1px;background:linear-gradient(90deg,transparent,#d1d5db)}
+.footer-title::after{background:linear-gradient(90deg,#d1d5db,transparent)}
+
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.feature-btn{background:linear-gradient(135deg,#fff,#f8fafc);border:1px solid #e5e7eb;border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;transition:all 0.25s;color:var(--text-secondary);box-shadow:0 2px 6px rgba(0,0,0,0.03);position:relative;overflow:hidden}
+.feature-btn::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(59,130,246,0.05),rgba(16,185,129,0.05));opacity:0;transition:opacity 0.3s}
+.feature-btn:hover{border-color:#93c5fd;color:var(--primary-blue);transform:translateY(-3px);box-shadow:0 6px 20px rgba(59,130,246,0.12)}
+.feature-btn:hover::before{opacity:1}
+.feature-btn .icon{font-size:1.6em;margin-bottom:8px}
+.feature-btn .label{font-size:0.82em;font-weight:500}
+
+/* VIP专属功能按钮 */
+.feature-btn.vip-only { border-color: rgba(245,158,11,0.3); background: linear-gradient(135deg,#fff,#fef3c7); }
+.feature-btn.vip-only .label { color: #b45309; }
+.feature-btn.vip-only::after { content: '👑'; position: absolute; top: 5px; right: 5px; font-size: 0.7em; }
+
+/* ========== 版本信息 ========== */
+.version{text-align:center;color:#9ca3af;font-size:0.78em;margin-top:25px;padding:18px;border-top:1px solid var(--border-light)}
+.version::before{content:'✨';margin-right:8px}
+
+/* ========== 响应式 ========== */
+@media (max-width:600px){
+  .header{flex-direction:column;gap:15px;text-align:center}
+  .subjects{grid-template-columns:1fr}
+  .feature-grid{grid-template-columns:repeat(2,1fr)}
+  .today-stats{flex-direction:column}
+  .container{margin:10px;padding:20px;min-height:calc(100vh - 20px)}
+  .container::before,.container::after{display:none}
 }
 
-/* 歌单标题 */
-.mp-list-title{
-  font-size:11px;font-weight:700;color:#667eea;
-  letter-spacing:1px;margin-bottom:6px;
-  display:flex;align-items:center;gap:6px;
-}
+/* ===== 日历打卡 ===== */
+.calendar-modal{display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center}
+.calendar-modal.active{display:flex}
+.calendar-modal .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px)}
+.calendar-modal .modal-card{position:relative;background:#fff;border-radius:20px;padding:28px;width:min(480px,92vw);max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:modalIn 0.3s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(0.92) translateY(10px)}to{opacity:1;transform:none}}
+.calendar-modal .modal-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;cursor:pointer;font-size:16px;color:#64748b;transition:all 0.2s}
+.calendar-modal .modal-close:hover{background:#e2e8f0;color:#334155}
+.calendar-modal .modal-header{text-align:center;margin-bottom:20px}
+.calendar-modal .modal-header h2{font-size:1.3em;color:#1e293b;margin:0 0 6px}
+.calendar-modal .modal-header p{font-size:0.85em;color:#94a3b8;margin:0}
+.calendar-checkin-banner{display:none;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;padding:18px 20px;margin-bottom:18px;text-align:center;cursor:pointer;transition:transform 0.2s}
+.calendar-checkin-banner:hover{transform:scale(1.02)}
+.calendar-checkin-banner.checked{background:linear-gradient(135deg,#10b981,#059669)}
+.calendar-checkin-banner .banner-icon{font-size:2em;margin-bottom:6px}
+.calendar-checkin-banner .banner-text{color:#fff;font-size:0.95em;font-weight:600}
+.calendar-checkin-banner .banner-sub{color:rgba(255,255,255,0.8);font-size:0.8em;margin-top:4px}
+.calendar-checkin-banner.hidden{display:none}
+.calendar-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.calendar-nav button{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:14px;color:#64748b;transition:all 0.2s}
+.calendar-nav button:hover{background:#e2e8f0;color:#334155}
+.calendar-nav .nav-title{font-size:1em;font-weight:700;color:#1e293b}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.calendar-weekday{font-size:0.75em;color:#94a3b8;font-weight:600;padding:4px 0}
+.calendar-day{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.82em;color:#475569;cursor:pointer;transition:all 0.2s;position:relative}
+.calendar-day:hover{background:#f1f5f9}
+.calendar-day.empty{background:transparent;cursor:default}
+.calendar-day.today{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700}
+.calendar-day.checked{background:#10b981;color:#fff;font-weight:700}
+.calendar-day.future{color:#cbd5e1;cursor:not-allowed}
+.calendar-streak{display:flex;gap:20px;justify-content:center;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9}
+.calendar-streak .streak-item{text-align:center}
+.calendar-streak .streak-num{font-size:1.5em;font-weight:800;color:#667eea}
+.calendar-streak .streak-label{font-size:0.75em;color:#94a3b8}
+.calendar-tip{margin-top:12px;text-align:center;font-size:0.8em;color:#94a3b8}
 
-/* 歌单列表 */
-.mp-list{
-  max-height:180px;overflow-y:auto;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(102,126,234,.4) transparent;
-}
-.mp-list::-webkit-scrollbar{width:4px;}
-.mp-list::-webkit-scrollbar-track{background:transparent;}
-.mp-list::-webkit-scrollbar-thumb{background:rgba(102,126,234,.4);border-radius:2px;}
+/* ===== 鼓励弹窗 ===== */
+.encourage-modal{display:none;position:fixed;inset:0;z-index:1100;align-items:center;justify-content:center}
+.encourage-modal.active{display:flex}
+.encourage-modal .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px)}
+.encourage-modal .modal-card{position:relative;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:24px;padding:40px;width:min(420px,90vw);text-align:center;box-shadow:0 25px 80px rgba(102,126,234,0.4);animation:encourageIn 0.4s ease;overflow:hidden}
+@keyframes encourageIn{from{opacity:0;transform:scale(0.8) translateY(30px)}to{opacity:1;transform:none}}
+.encourage-modal .modal-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);animation:shimmerBg 3s ease-in-out infinite;pointer-events:none}
+@keyframes shimmerBg{0%,100%{transform:translate(0,0)}50%{transform:translate(10%,10%)}}
+.encourage-modal .modal-close{position:absolute;top:12px;right:14px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);cursor:pointer;font-size:18px;color:#fff;transition:all 0.2s;z-index:1}
+.encourage-modal .modal-close:hover{background:rgba(255,255,255,0.3)}
+.encourage-icon{font-size:4em;margin-bottom:16px;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.encourage-title{color:#fff;font-size:1.6em;font-weight:700;margin-bottom:12px;text-shadow:0 2px 10px rgba(0,0,0,0.2)}
+.encourage-text{color:rgba(255,255,255,0.95);font-size:1.1em;line-height:1.7;margin-bottom:24px;min-height:60px}
+.encourage-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:rgba(255,255,255,0.95);color:#667eea;border:none;border-radius:30px;font-size:1em;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 20px rgba(0,0,0,0.2)}
+.encourage-btn:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
+.encourage-btn.secondary{background:rgba(255,255,255,0.2);color:#fff;margin-left:12px}
+.encourage-btn.secondary:hover{background:rgba(255,255,255,0.3)}
+.encourage-footer{margin-top:20px;color:rgba(255,255,255,0.6);font-size:0.8em}
 
-.mp-song-item{
-  display:flex;align-items:center;padding:7px 10px;
-  border-radius:8px;cursor:pointer;transition:all .2s;
-  font-size:13px;color:#c0ccf0;
-  gap:8px;
-}
-.mp-song-item:hover{background:rgba(102,126,234,.15);}
-.mp-song-item.active{
-  background:rgba(102,126,234,.25);
-  color:#fff;
-  border-left:2px solid #667eea;
-}
-.mp-song-num{font-size:11px;opacity:.5;min-width:18px;}
-.mp-song-name{
-  flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.mp-song-playing{
-  font-size:11px;color:#667eea;flex-shrink:0;
-  animation:pulse-dot 1.2s ease-in-out infinite;
-}
-@keyframes pulse-dot{
-  0%,100%{opacity:1}
-  50%{opacity:.3}
-}
+/* ============================================================
+     登录模块样式 - 高级层次感设计
+     ============================================================ */
+
+/* 登录遮罩层 - 深色渐变背景 */
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%)}
+.login-overlay.hidden{display:none}
+.login-overlay::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 30%,rgba(59,130,246,0.15) 0%,transparent 50%),radial-gradient(circle at 70% 70%,rgba(139,92,246,0.1) 0%,transparent 50%),radial-gradient(circle at 50% 50%,rgba(16,185,129,0.08) 0%,transparent 40%);animation:bgRotate 30s linear infinite}
+@keyframes bgRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* 浮动装饰元素 */
+.login-deco{position:absolute;pointer-events:none;z-index:1}
+.login-deco-circle{border-radius:50%;border:1px solid;border-color:rgba(255,255,255,0.06)}
+.login-deco-1{top:10%;left:5%;width:200px;height:200px;animation:floatDeco 20s ease-in-out infinite}
+.login-deco-2{bottom:15%;right:8%;width:150px;height:150px;animation:floatDeco 25s ease-in-out infinite reverse}
+.login-deco-3{top:50%;right:15%;width:100px;height:100px;animation:floatDeco 18s ease-in-out infinite}
+.login-deco-4{bottom:30%;left:12%;width:80px;height:80px;animation:floatDeco 22s ease-in-out infinite reverse}
+@keyframes floatDeco{0%,100%{transform:translate(0,0) rotate(0deg);opacity:0.3}50%{transform:translate(30px,40px) rotate(180deg);opacity:0.6}}
+
+/* 光晕效果 */
+.login-glow{position:absolute;width:400px;height:400px;border-radius:50%;filter:blur(80px);opacity:0.3;z-index:0}
+.login-glow-1{top:-100px;left:-100px;background:linear-gradient(135deg,#3b82f6,#8b5cf6)}
+.login-glow-2{bottom:-100px;right:-100px;background:linear-gradient(135deg,#10b981,#3b82f6)}
+
+/* 玻璃拟态登录卡片 */
+.login-box{background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:28px;padding:50px 45px;width:420px;max-width:90vw;box-shadow:0 25px 50px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.1) inset,0 0 80px rgba(59,130,246,0.1);position:relative;z-index:10;border:1px solid rgba(255,255,255,0.15)}
+.login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#10b981,#f59e0b);border-radius:28px 28px 0 0}
+.login-box::after{content:'';position:absolute;top:1px;left:1px;right:1px;bottom:1px;border-radius:27px;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none}
+
+/* 卡片顶部Logo */
+.login-logo{text-align:center;margin-bottom:35px;position:relative}
+.login-logo-icon{width:80px;height:80px;margin:0 auto 20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.5em;box-shadow:0 10px 30px rgba(59,130,246,0.4),0 0 0 4px rgba(255,255,255,0.1) inset;position:relative;animation:logoFloat 4s ease-in-out infinite}
+.login-logo-icon::before{content:'';position:absolute;top:-4px;left:-4px;right:-4px;bottom:-4px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:28px;z-index:-1;opacity:0.3;filter:blur(12px)}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.login-logo h2{font-size:1.6em;color:#fff;margin-bottom:8px;text-shadow:0 2px 10px rgba(0,0,0,0.3);letter-spacing:0.5px}
+.login-logo p{color:rgba(255,255,255,0.6);font-size:0.95em}
+
+/* 输入框组 */
+.login-input-group{margin-bottom:22px;position:relative}
+.login-input-group label{display:block;color:rgba(255,255,255,0.8);font-size:0.85em;margin-bottom:10px;font-weight:500;letter-spacing:0.5px}
+.login-input-wrap{position:relative}
+.login-input-wrap .input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);font-size:1.1em;transition:color 0.3s}
+.login-input-wrap input{width:100%;padding:16px 16px 16px 48px;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.1);border-radius:14px;font-size:1em;color:#fff;transition:all 0.3s;outline:none}
+.login-input-wrap input::placeholder{color:rgba(255,255,255,0.35)}
+.login-input-wrap input:focus{background:rgba(255,255,255,0.12);border-color:rgba(59,130,246,0.5);box-shadow:0 0 0 4px rgba(59,130,246,0.15),0 4px 15px rgba(0,0,0,0.2)}
+.login-input-wrap input:focus + .input-icon{color:#3b82f6}
+.login-input-wrap input:focus ~ .input-glow{opacity:1}
+.login-input-wrap .input-glow{position:absolute;bottom:-2px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,#3b82f6,transparent);opacity:0;transition:opacity 0.3s;border-radius:2px}
+
+/* 错误提示 */
+.login-error{background:rgba(239,68,68,0.15);color:#fca5a5;padding:14px 16px;border-radius:12px;margin-bottom:22px;font-size:0.85em;display:none;border:1px solid rgba(239,68,68,0.3);backdrop-filter:blur(10px)}
+.login-error.show{display:flex;align-items:center;gap:10px}
+.login-error::before{content:'⚠️'}
+
+/* 登录按钮 */
+.login-btn{width:100%;padding:16px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:14px;font-size:1.05em;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 8px 25px rgba(59,130,246,0.4),0 0 0 1px rgba(255,255,255,0.1) inset;position:relative;overflow:hidden;letter-spacing:1px}
+.login-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transition:left 0.5s}
+.login-btn:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(59,130,246,0.5)}
+.login-btn:hover::before{left:100%}
+.login-btn:active{transform:translateY(-1px)}
+
+/* 底部提示 */
+.login-hint{text-align:center;margin-top:25px;color:rgba(255,255,255,0.4);font-size:0.82em;line-height:1.6}
+.login-hint .divider{display:flex;align-items:center;gap:15px;margin-bottom:15px}
+.login-hint .divider::before,.login-hint .divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)}
+.login-hint .vip-hint{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(245,158,11,0.15);border-radius:20px;color:rgba(255,255,255,0.7);border:1px solid rgba(245,158,11,0.2)}
+.login-hint .vip-hint span{color:#fbbf24}
+
+/* 用户信息显示 */
+.user-info{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#eff6ff,#dbeafe);padding:8px 14px;border-radius:12px;font-size:0.85em;color:#1e40af;cursor:pointer;transition:all 0.2s;border:1px solid rgba(59,130,246,0.2)}
+.user-info:hover{background:linear-gradient(135deg,#dbeafe,#bfdbfe)}
+.user-avatar{width:28px;height:28px;background:linear-gradient(135deg,var(--primary-blue),var(--primary-purple));border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8em}
+.user-info.vip-user { background: linear-gradient(135deg,#fef3c7,#fde68a); color: #b45309; border-color: rgba(245,158,11,0.3); }
+.user-info.vip-user .user-avatar { background: linear-gradient(135deg,#f59e0b,#d97706); }
+
+/* 设置弹窗 */
+.settings-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s ease}
+.settings-modal.hidden{display:none}
+.settings-box{background:#fff;border-radius:20px;padding:30px;width:360px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;overflow:hidden}
+.settings-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#10b981)}
+.settings-header{text-align:center;margin-bottom:25px;padding-bottom:20px;border-bottom:1px solid #f3f4f6}
+.settings-header h3{font-size:1.3em;color:#1e3a5f;margin-bottom:8px}
+.settings-header p{color:#6b7280;font-size:0.85em}
+.settings-user{display:flex;align-items:center;gap:14px;padding:16px;background:#f8fafc;border-radius:14px;margin-bottom:20px}
+.settings-avatar{width:48px;height:48px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3em}
+.settings-user.vip .settings-avatar{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.settings-user-info h4{color:#1e3a5f;font-size:1em;margin-bottom:4px}
+.settings-user-info p{color:#6b7280;font-size:0.8em}
+.settings-user.vip .settings-user-info h4{color:#b45309}
+.settings-actions{display:flex;flex-direction:column;gap:12px}
+.settings-btn{display:flex;align-items:center;gap:12px;padding:14px 18px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;cursor:pointer;transition:all 0.2s;color:#374151;font-size:0.95em}
+.settings-btn:hover{background:#f8fafc;border-color:#d1d5db;transform:translateX(4px)}
+.settings-btn.danger{color:#dc2626;border-color:#fecaca}
+.settings-btn.danger:hover{background:#fef2f2;border-color:#fca5a5}
+.settings-btn .icon{font-size:1.3em}
+.settings-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:#f3f4f6;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6b7280;transition:all 0.2s}
+.settings-close:hover{background:#e5e7eb;color:#374151}
+
+/* ========== 组队学习弹窗 ========== */
+.team-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1001;align-items:center;justify-content:center}
+.team-modal.active{display:flex}
+.team-modal .modal-backdrop{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px)}
+.team-modal .modal-card{position:relative;background:linear-gradient(135deg,rgba(15,52,96,0.95),rgba(20,70,110,0.95));border:1px solid rgba(14,165,233,0.3);border-radius:20px;padding:28px;width:min(420px,92vw);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:modalIn .3s ease}
+.team-modal .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.team-modal .modal-close:hover{background:rgba(255,255,255,0.2)}
+.team-modal .modal-header{text-align:center;margin-bottom:20px}
+.team-modal .modal-header h2{color:#7dd3fc;font-size:1.4em;margin:0 0 4px}
+.team-modal .modal-header p{color:rgba(125,211,252,0.7);font-size:.85em;margin:0}
+.team-modal .modal-section{margin-bottom:16px}
+.team-modal .modal-section h3{color:#7dd3fc;font-size:.9em;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.team-modal input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 14px;color:#fff;font-size:.9em;outline:none;transition:border-color .2s}
+.team-modal input:focus{border-color:#38bdf8}
+.team-modal input::placeholder{color:rgba(255,255,255,0.35)}
+.team-modal .btn-row{display:flex;gap:8px;margin-top:8px}
+.team-modal .btn-primary,.team-modal .btn-secondary{flex:1;padding:10px;border-radius:10px;font-size:.88em;cursor:pointer;transition:all .2s;border:none;font-weight:500}
+.team-modal .btn-primary{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff}
+.team-modal .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(14,165,233,0.4)}
+.team-modal .btn-secondary{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15)}
+.team-modal .btn-secondary:hover{background:rgba(255,255,255,0.15)}
+.team-modal .btn-danger{background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.3)}
+.team-modal .btn-danger:hover{background:rgba(239,68,68,0.35)}
+.team-modal .team-empty{text-align:center;padding:32px 0;color:rgba(125,211,252,0.6)}
+.team-modal .team-empty-icon{font-size:2.5em;margin-bottom:8px}
+.team-modal .team-list{list-style:none;margin:0;padding:0;max-height:260px;overflow-y:auto}
+.team-modal .team-member{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+.team-modal .team-member:last-child{border-bottom:none}
+.team-modal .member-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:.85em;flex-shrink:0}
+.team-modal .member-info{flex:1;min-width:0}
+.team-modal .member-name{color:#fff;font-size:.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-modal .member-tag{margin-left:6px;font-size:.75em;padding:1px 6px;border-radius:8px;background:rgba(245,158,11,0.2);color:#fbbf24}
+.team-modal .team-id-box{background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.25);border-radius:10px;padding:14px;margin-top:12px;text-align:center}
+.team-modal .team-id-label{color:rgba(125,211,252,0.6);font-size:.78em;margin-bottom:4px}
+.team-modal .team-id-value{color:#7dd3fc;font-size:1.1em;font-weight:bold;letter-spacing:2px}
+
+/* ========== 排行榜弹窗 ========== */
+.rank-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;align-items:center;justify-content:center}
+.rank-modal.active{display:flex}
+.rank-modal .modal-backdrop{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px)}
+.rank-modal .modal-card{position:relative;background:linear-gradient(135deg,rgba(15,52,96,0.95),rgba(20,70,110,0.95));border:1px solid rgba(14,165,233,0.3);border-radius:20px;padding:28px;width:min(440px,92vw);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:modalIn .3s ease}
+.rank-modal .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.rank-modal .modal-close:hover{background:rgba(255,255,255,0.2)}
+.rank-modal .modal-header{text-align:center;margin-bottom:18px}
+.rank-modal .modal-header h2{color:#7dd3fc;font-size:1.4em;margin:0 0 4px}
+.rank-modal .modal-header p{color:rgba(125,211,252,0.7);font-size:.85em;margin:0}
+.rank-tabs{display:flex;background:rgba(255,255,255,0.05);border-radius:12px;padding:4px;margin-bottom:16px}
+.rank-tab{flex:1;padding:8px 4px;background:none;border:none;color:rgba(125,211,252,0.5);font-size:.8em;cursor:pointer;border-radius:9px;transition:all .2s;font-weight:500}
+.rank-tab.active{background:rgba(14,165,233,0.3);color:#7dd3fc}
+.rank-tab:hover:not(.active){color:#7dd3fc}
+.rank-list{list-style:none;margin:0;padding:0;max-height:380px;overflow-y:auto}
+.rank-item{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;margin-bottom:4px;transition:background .2s}
+.rank-item:hover{background:rgba(255,255,255,0.05)}
+.rank-item.me{background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3)}
+.rank-pos{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;font-weight:bold;flex-shrink:0}
+.rank-pos.gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.rank-pos.silver{background:linear-gradient(135deg,#9ca3af,#6b7280);color:#fff}
+.rank-pos.bronze{background:linear-gradient(135deg,#b45309,#92400e);color:#fff}
+.rank-pos.normal{background:rgba(255,255,255,0.1);color:rgba(125,211,252,0.5)}
+.rank-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:.85em;flex-shrink:0}
+.rank-avatar.vip{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.rank-avatar.normal{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff}
+.rank-info{flex:1;min-width:0}
+.rank-name{color:#fff;font-size:.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rank-sub{color:rgba(125,211,252,0.5);font-size:.75em;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-value{text-align:right;flex-shrink:0}
+.rank-num{color:#7dd3fc;font-weight:bold;font-size:1.05em}
+.rank-unit{color:rgba(125,211,252,0.5);font-size:.75em;margin-left:2px}
+.vip-tag,.me-tag{font-size:.7em;padding:1px 6px;border-radius:8px;font-weight:bold}
+.vip-tag{background:rgba(245,158,11,0.2);color:#fbbf24}
+.me-tag{background:rgba(14,165,233,0.25);color:#7dd3fc}
+.rank-empty{text-align:center;padding:40px 0;color:rgba(125,211,252,0.5)}
+.empty-icon{font-size:2.5em;margin-bottom:8px}
+@keyframes modalIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
 
-<!-- 顶部切换栏 -->
-<div id="subject-bar">
-  <div class="bar-title" id="bar-title">📚 初级经济师每日一练</div>
-  <button class="subj-btn active" id="btn-econ" onclick="switchSubject('econ')">📊 经济基础</button>
-  <button class="subj-btn" id="btn-biz" onclick="switchSubject('biz')">🏢 工商管理</button>
-  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="全屏">⛶</button>
-</div>
-
-<!-- 加载遮罩 -->
-<div id="loading-mask">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">加载中...</div>
-</div>
-
-<!-- iframe 容器 -->
-<div id="iframe-wrap">
-  <iframe id="frame-econ" class="app-frame active" src="每日一练_初级经济师_v5_0410_2115.html"></iframe>
-  <iframe id="frame-biz"   class="app-frame"       src="每日一练_初级工商管理_最终版.html"></iframe>
-</div>
-
-<!-- 底部提示 -->
-<div id="tip-bar">💡 提示：首次使用需在各科目内登录，建议使用右上角 ⛶ 全屏获得最佳体验</div>
-
-<!-- ===== 音乐播放器 ===== -->
-<audio id="bg-audio" preload="none"></audio>
-
-<!-- 悬浮音乐按钮 -->
-<button id="music-toggle-btn" onclick="toggleMusicPanel()" title="音乐播放器">
-  🎵
-</button>
-
-<!-- 音乐面板 -->
-<div id="music-panel">
-  <div class="mp-top">
-    <span class="mp-top-label">🎧 背景音乐</span>
-    <button class="mp-close-btn" onclick="toggleMusicPanel()">✕</button>
-  </div>
-
-  <!-- 当前歌曲 -->
-  <div class="mp-now" id="mp-now">
-    <span class="mp-no-song">点击下方歌曲开始播放</span>
-  </div>
-
-  <!-- 进度条 -->
-  <div class="mp-progress-wrap">
-    <div class="mp-progress-bar" id="mp-progress-bar" onclick="seekAudio(event)">
-      <div class="mp-progress-fill" id="mp-progress-fill"></div>
+<!-- ============================================================
+     登录遮罩层 - 高级层次感设计
+     ============================================================ -->
+<div class="login-overlay" id="loginOverlay">
+  <!-- 背景光晕 -->
+  <div class="login-glow login-glow-1"></div>
+  <div class="login-glow login-glow-2"></div>
+  
+  <!-- 浮动装饰 -->
+  <div class="login-deco login-deco-circle login-deco-1"></div>
+  <div class="login-deco login-deco-circle login-deco-2"></div>
+  <div class="login-deco login-deco-circle login-deco-3"></div>
+  <div class="login-deco login-deco-circle login-deco-4"></div>
+  
+  <!-- 登录卡片 -->
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">📚</div>
+      <h2>经济师考试每日一练</h2>
+      <p>随时随地，高效刷题</p>
     </div>
-    <div class="mp-time">
-      <span id="mp-time-current">0:00</span>
-      <span id="mp-time-total">0:00</span>
+    
+    <div class="login-error" id="loginError"></div>
+    
+    <div class="login-input-group">
+      <label>用户名</label>
+      <div class="login-input-wrap">
+        <input type="text" id="loginUsername" placeholder="请输入用户名" autocomplete="off">
+        <span class="input-icon">👤</span>
+        <div class="input-glow"></div>
+      </div>
+    </div>
+    
+    <div class="login-input-group">
+      <label>密码</label>
+      <div class="login-input-wrap">
+        <input type="password" id="loginPassword" placeholder="请输入密码">
+        <span class="input-icon">🔒</span>
+        <div class="input-glow"></div>
+      </div>
+    </div>
+    
+    <button class="login-btn" onclick="handleLogin()">登 录</button>
+    <div class="login-footer">
+      <a href="javascript:void(0)" onclick="showRegister()">没有账号？<span>注册账号</span></a>
     </div>
   </div>
-
-  <!-- 控制按钮 -->
-  <div class="mp-controls">
-    <button class="mp-ctrl-btn small" onclick="prevSong()" title="上一首">⏮</button>
-    <button class="mp-ctrl-btn big" id="mp-play-btn" onclick="togglePlay()" title="播放/暂停">▶</button>
-    <button class="mp-ctrl-btn small" onclick="nextSong()" title="下一首">⏭</button>
-  </div>
-
-  <!-- 音量 -->
-  <div class="mp-vol">
-    <span class="mp-vol-icon" id="mp-vol-icon" onclick="toggleMute()">🔊</span>
-    <input type="range" class="mp-vol-slider" id="mp-vol" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)">
-  </div>
-
-  <!-- 歌单 -->
-  <div class="mp-list-title">📋 歌单</div>
-  <div class="mp-list" id="mp-list"></div>
 </div>
 
+<!-- 背景装饰元素 -->
+<div class="deco deco-circle deco-1"></div>
+<div class="deco deco-circle deco-2"></div>
+<div class="deco deco-circle deco-3"></div>
+<div class="deco deco-dot dot-1"></div>
+<div class="deco deco-dot dot-2"></div>
+<div class="deco deco-dot dot-3"></div>
+<div class="deco deco-dot dot-4"></div>
+<div class="deco deco-line line-1"></div>
+<div class="deco deco-line line-2"></div>
+
+<!-- 设置弹窗 -->
+<div class="settings-modal hidden" id="settingsModal">
+  <div class="settings-box">
+    <div class="settings-close" onclick="closeSettings()">✕</div>
+    <div class="settings-header">
+      <h3>⚙️ 设置</h3>
+      <p>管理您的账户和偏好</p>
+    </div>
+    <div class="settings-user" id="settingsUserInfo">
+      <div class="settings-avatar" id="settingsAvatar">👤</div>
+      <div class="settings-user-info">
+        <h4 id="settingsUsername">用户</h4>
+        <p id="settingsUserType">普通用户</p>
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="settings-btn" onclick="showProfile()">
+        <span class="icon">👤</span>
+        <span>个人资料</span>
+      </button>
+      <button class="settings-btn" onclick="showDataManage()">
+        <span class="icon">📊</span>
+        <span>数据管理</span>
+      </button>
+      <button class="settings-btn danger" onclick="handleLogout()">
+        <span class="icon">🚪</span>
+        <span>退出登录</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- 顶部 -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <div class="logo-text">
+      <h1>经济师考试每日一练</h1>
+      <p>随时随地，高效刷题</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="action-btn vip-only-btn" id="btnMusic" onclick="toggleMusic()" title="音乐" style="display:none">🎵</div>
+    <div class="action-btn vip-only-btn" id="btnTheme" onclick="toggleTheme()" title="主题" style="display:none">🎨</div>
+    <div class="user-info" id="userInfo" onclick="showSettings()" style="display:none">
+      <div class="user-avatar" id="userAvatar">👑</div>
+      <span id="userName">用户</span>
+    </div>
+  </div>
+</div>
+
+<!-- 主内容 -->
+<div class="main">
+  
+  <!-- 欢迎区 -->
+  <div class="welcome">
+    <h2 id="welcomeTitle">👋 今天也要加油哦！</h2>
+    <p>坚持每日一练，轻松通过考试</p>
+    
+    <div class="today-stats">
+      <div class="stat-card">
+        <div class="stat-num" id="today-total">0</div>
+        <div class="stat-label">今日刷题</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="today-correct">0%</div>
+        <div class="stat-label">正确率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="streak-days">0</div>
+        <div class="stat-label">连续天数</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 科目选择 -->
+  <div class="subjects">
+    <a href="每日一练_经济基础_完整版.html" class="subject-card jj">
+      <div class="subject-header">
+        <div class="subject-info">
+          <h3>📘 初级经济基础</h3>
+          <p>经济基础知识核心考点</p>
+        </div>
+        <div class="subject-icon">📘</div>
+      </div>
+      <div class="subject-progress">
+        <div class="progress-bar"><div class="progress-fill" id="jj-progress" style="width:0%"></div></div>
+        <div class="progress-text">
+          <span>学习进度</span>
+          <span id="jj-progress-text">0/5343题</span>
+        </div>
+      </div>
+      <div class="subject-meta">
+        <div class="meta-item">❌ 错题：<span id="jj-wrong">0</span></div>
+        <div class="meta-item">⭐ 收藏：<span id="jj-fave">0</span></div>
+        <div class="meta-item">📊 30章</div>
+      </div>
+    </a>
+    
+    <a href="每日一练_工商管理_完整版.html" class="subject-card gs">
+      <div class="subject-header">
+        <div class="subject-info">
+          <h3>📗 工商管理</h3>
+          <p>工商管理专业知识实务</p>
+        </div>
+        <div class="subject-icon">📗</div>
+      </div>
+      <div class="subject-progress">
+        <div class="progress-bar"><div class="progress-fill" id="gs-progress" style="width:0%"></div></div>
+        <div class="progress-text">
+          <span>学习进度</span>
+          <span id="gs-progress-text">0/2160题</span>
+        </div>
+      </div>
+      <div class="subject-meta">
+        <div class="meta-item">❌ 错题：<span id="gs-wrong">0</span></div>
+        <div class="meta-item">⭐ 收藏：<span id="gs-fave">0</span></div>
+        <div class="meta-item">📊 9章</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- 功能区 -->
+  <div class="footer-section">
+    <div class="footer-title">更多功能</div>
+    <div class="feature-grid">
+      <div class="feature-btn" onclick="showCalendar()" id="feature-calendar">
+        <div class="icon">📅</div>
+        <div class="label">日历打卡</div>
+      </div>
+      <div class="feature-btn" onclick="showTeam()" id="feature-team">
+        <div class="icon">👥</div>
+        <div class="label">组队学习</div>
+      </div>
+      <div class="feature-btn" onclick="showRanking()" id="feature-ranking">
+        <div class="icon">🏆</div>
+        <div class="label">排行榜</div>
+      </div>
+      <div class="feature-btn" onclick="showSettings()">
+        <div class="icon">⚙️</div>
+        <div class="label">设置</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="version">
+  经济师考试每日一练系统 v2.1 · 数据存储于本地浏览器
+</div>
+
+</div>
+
+<!-- ============================================================
+     JavaScript模块区 - 后期可拆分为多个JS文件
+     ============================================================ -->
 <script>
-// ---------- 配置 ----------
-var APPS = {
-  econ: {
-    title: '📚 初级经济师每日一练',
-    frame: 'frame-econ',
-    file: '每日一练_初级经济师_v5_0410_2115.html',
-    btn: 'btn-econ'
+
+// ============================================================
+// 模块1: 系统配置 - 后期可改为从API获取
+// ============================================================
+
+var APP_CONFIG = {
+  version: '2.1',
+  dataStats: {
+    jj_total: 5343,
+    gs_total: 2160
   },
-  biz: {
-    title: '🏢 工商管理每日一练',
-    frame: 'frame-biz',
-    file: '每日一练_初级工商管理_最终版.html',
-    btn: 'btn-biz'
+  env: 'local',  // 'local' | 'production' | 'development'
+  api: {
+    baseUrl: '',  // 后期填充，如 '/api'
+    auth: '/auth',
+    vip: '/vip/config'
   }
 };
 
-var currentSubject = 'econ';
-var isFullscreen = false;
+// ============================================================
+// 模块2: VIP用户配置 - 后期可改为从API获取
+// ============================================================
 
-// ---------- 音乐播放器 ----------
-var PLAYLIST = [
-  { name: '在你的身边 (DJ版)',        file: 'song01.ogg' },
-  { name: '黯',                     file: 'song02.mp3' },
-  { name: '爱的原点',               file: 'song03.mp3' },
-  { name: '故事',                   file: 'song04.mp3' },
-  { name: '倒叙记忆',               file: 'song05.mp3' },
-  { name: '夏天的歌',               file: 'song06.mp3' },
-  { name: '靠近',                   file: 'song07.mp3' },
-  { name: '安静',                   file: 'song08.mp3' },
-  { name: 'Do It For The Show',    file: 'song09.mp3' }
-];
-
-var audio = document.getElementById('bg-audio');
-var currentSongIndex = parseInt(localStorage.getItem('music_songIdx') || '0');
-var isPanelOpen = false;
-var wasPlaying = false;
-
-// 初始化
-audio.volume = parseFloat(localStorage.getItem('music_vol') || '0.5');
-document.getElementById('mp-vol').value = audio.volume;
-updateVolIcon();
-
-function buildPlaylist() {
-  var list = document.getElementById('mp-list');
-  list.innerHTML = '';
-  PLAYLIST.forEach(function(song, i) {
-    var item = document.createElement('div');
-    item.className = 'mp-song-item' + (i === currentSongIndex ? ' active' : '');
-    item.innerHTML =
-      '<span class="mp-song-num">' + String(i + 1).padStart(2, '0') + '</span>' +
-      '<span class="mp-song-name">' + song.name + '</span>' +
-      (i === currentSongIndex && !audio.paused
-        ? '<span class="mp-song-playing">●</span>'
-        : '');
-    item.onclick = (function(idx) {
-      return function() { playSong(idx); };
-    })(i);
-    list.appendChild(item);
-  });
-}
-
-function playSong(idx) {
-  currentSongIndex = idx;
-  localStorage.setItem('music_songIdx', idx);
-  audio.src = PLAYLIST[idx].file;
-  audio.play().catch(function() {});
-  updateNowPlaying();
-  updatePlaylistHighlight();
-  document.getElementById('mp-play-btn').textContent = '⏸';
-  document.getElementById('music-toggle-btn').classList.add('playing');
-}
-
-function updateNowPlaying() {
-  var el = document.getElementById('mp-now');
-  el.innerHTML = '<span style="font-size:12px;color:#667eea">▶</span> ' + PLAYLIST[currentSongIndex].name;
-}
-
-function updatePlaylistHighlight() {
-  var items = document.querySelectorAll('.mp-song-item');
-  items.forEach(function(item, i) {
-    item.classList.toggle('active', i === currentSongIndex);
-    var dot = item.querySelector('.mp-song-playing');
-    if (dot) dot.remove();
-    if (i === currentSongIndex && !audio.paused) {
-      var playing = document.createElement('span');
-      playing.className = 'mp-song-playing';
-      playing.textContent = '●';
-      item.appendChild(playing);
+var VIP_CONFIG = {
+  // VIP用户列表 - 后期可从后端获取
+  users: {
+    '瑶瑶公主': {
+      password: '020124',  // 后端部署后改为hash验证
+      privileges: {
+        // 专属主题
+        theme: 'deep-sea',
+        
+        // 音乐权限
+        music: {
+          enabled: true,
+          playlist: ['ocean-waves', 'deep-focus', 'study-relax'],
+          exclusive: false  // 专属歌单
+        },
+        
+        // 功能开关
+        features: {
+          calendar: true,
+          team: true,
+          ranking: true,
+          exclusive: false
+        },
+        
+        // 专属样式
+        style: {
+          avatar: '👑',
+          badge: 'VIP',
+          welcomeText: '👑 公主殿下，今天也要加油哦！'
+        }
+      }
     }
-  });
+    
+    // 后期可添加更多VIP用户
+    // '其他用户': { ... }
+  },
+  
+  // 默认用户权限
+  defaultPrivileges: {
+    theme: 'white',
+    music: { enabled: false, playlist: [], exclusive: false },
+    features: { calendar: true, team: true, ranking: true, exclusive: false },
+    style: { avatar: null, badge: null, welcomeText: null }
+  }
+};
+
+// ============================================================
+// 模块3: 环境检测工具
+// ============================================================
+
+function detectEnvironment() {
+  var host = location.hostname;
+  var protocol = location.protocol;
+  
+  if (host === 'localhost' || host === '127.0.0.1' || protocol === 'file:') {
+    return 'local';
+  } else if (host.includes('github.io') || host.includes('vercel.app')) {
+    return 'production';
+  } else {
+    return 'development';
+  }
 }
 
-function togglePlay() {
-  if (!audio.src || audio.src === window.location.href) {
-    playSong(currentSongIndex);
+function isLocalMode() {
+  return detectEnvironment() === 'local';
+}
+
+// ============================================================
+// 模块4: 认证服务 - 后期可替换为API调用
+// ============================================================
+
+var AuthService = {
+  // 当前版本：本地验证（后期替换为API）
+  login: function(username, password) {
+    var config = VIP_CONFIG.users[username];
+    
+    // VIP用户验证
+    if (config) {
+      if (password !== config.password) {
+        return { success: false, error: '密码错误，请重新输入' };
+      }
+      return {
+        success: true,
+        user: {
+          username: username,
+          isVip: true,
+          privileges: config.privileges,
+          loginTime: new Date().toISOString()
+        }
+      };
+    }
+    
+    // 普通用户：任意用户名密码均可
+    if (username && password) {
+      return {
+        success: true,
+        user: {
+          username: username,
+          isVip: false,
+          privileges: VIP_CONFIG.defaultPrivileges,
+          loginTime: new Date().toISOString()
+        }
+      };
+    }
+    
+    return { success: false, error: '请输入用户名和密码' };
+  },
+  
+  // 后期API版本（预留接口）
+  loginAPI: async function(username, password) {
+    // TODO: 接入后端API
+    // const res = await fetch(APP_CONFIG.api.baseUrl + APP_CONFIG.api.auth, {
+    //   method: 'POST',
+    //   body: JSON.stringify({ username, password })
+    // });
+    // return res.json();
+    return this.login(username, password);
+  },
+  
+  logout: function() {
+    localStorage.removeItem('quiz_user');
+    localStorage.removeItem('quiz_logged_in');
+  },
+  
+  getCurrentUser: function() {
+    return JSON.parse(localStorage.getItem('quiz_user') || 'null');
+  },
+  
+  isLoggedIn: function() {
+    return localStorage.getItem('quiz_logged_in') === 'true';
+  }
+};
+
+// ============================================================
+// 模块5: VIP特权服务
+// ============================================================
+
+var VipService = {
+  // 应用VIP特权
+  applyPrivileges: function(user) {
+    if (!user || !user.privileges) return;
+    
+    var priv = user.privileges;
+    
+    // 应用主题
+    if (priv.theme === 'deep-sea') {
+      document.body.classList.add('vip-theme');
+    }
+    
+    // 应用样式
+    if (priv.style) {
+      // 欢迎文字
+      if (priv.style.welcomeText) {
+        var title = document.getElementById('welcomeTitle');
+        if (title) title.textContent = priv.style.welcomeText;
+      }
+      
+      // VIP用户信息样式
+      if (user.isVip) {
+        var userInfo = document.getElementById('userInfo');
+        if (userInfo) userInfo.classList.add('vip-user');
+      }
+    }
+    
+    // 应用功能开关
+    if (priv.features) {
+      Object.keys(priv.features).forEach(function(key) {
+        var btn = document.getElementById('feature-' + key);
+        if (btn && priv.features[key] === false) {
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+        }
+        if (btn && priv.features.exclusive && key !== 'exclusive') {
+          btn.classList.add('vip-only');
+        }
+      });
+    }
+  },
+  
+  // 获取用户配置（后期可从API获取）
+  getConfig: function(username) {
+    if (VIP_CONFIG.users[username]) {
+      return VIP_CONFIG.users[username].privileges;
+    }
+    return VIP_CONFIG.defaultPrivileges;
+  },
+  
+  // 后期API版本（预留接口）
+  getConfigAPI: async function(username) {
+    // TODO: 接入后端API
+    // const res = await fetch(APP_CONFIG.api.baseUrl + APP_CONFIG.api.vip + '/' + username);
+    // return res.json();
+    return this.getConfig(username);
+  }
+};
+
+// ============================================================
+// 模块6: UI控制
+// ============================================================
+
+function handleLogin() {
+  var username = document.getElementById('loginUsername').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var errorBox = document.getElementById('loginError');
+  
+  // 清空错误
+  errorBox.classList.remove('show');
+  errorBox.textContent = '';
+  
+  // 验证输入
+  if (!username) {
+    errorBox.textContent = '请输入用户名';
+    errorBox.classList.add('show');
+    document.getElementById('loginUsername').focus();
     return;
   }
-  if (audio.paused) {
-    audio.play().catch(function() {});
-    document.getElementById('mp-play-btn').textContent = '⏸';
-    document.getElementById('music-toggle-btn').classList.add('playing');
-  } else {
-    audio.pause();
-    document.getElementById('mp-play-btn').textContent = '▶';
-    document.getElementById('music-toggle-btn').classList.remove('playing');
+  
+  if (!password) {
+    errorBox.textContent = '请输入密码';
+    errorBox.classList.add('show');
+    document.getElementById('loginPassword').focus();
+    return;
   }
-  updatePlaylistHighlight();
-}
-
-function prevSong() {
-  var idx = (currentSongIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
-  playSong(idx);
-}
-
-function nextSong() {
-  var idx = (currentSongIndex + 1) % PLAYLIST.length;
-  playSong(idx);
-}
-
-function setVolume(val) {
-  audio.volume = parseFloat(val);
-  localStorage.setItem('music_vol', val);
-  updateVolIcon();
-}
-
-function toggleMute() {
-  if (audio.volume > 0) {
-    wasPlaying = !audio.paused;
-    audio.volume = 0;
-    document.getElementById('mp-vol').value = 0;
-  } else {
-    audio.volume = parseFloat(localStorage.getItem('music_vol') || '0.5');
-    document.getElementById('mp-vol').value = audio.volume;
-    if (wasPlaying) audio.play().catch(function() {});
+  
+  // 使用AuthService验证
+  var result = AuthService.login(username, password);
+  
+  if (!result.success) {
+    errorBox.textContent = result.error;
+    errorBox.classList.add('show');
+    return;
   }
-  updateVolIcon();
+  
+  // 登录成功
+  localStorage.setItem('quiz_user', JSON.stringify(result.user));
+  localStorage.setItem('quiz_logged_in', 'true');
+  
+  showApp(result.user);
 }
 
-function updateVolIcon() {
-  var vol = audio.volume;
-  var icon = document.getElementById('mp-vol-icon');
-  if (vol === 0) {
-    icon.textContent = '🔇';
-  } else if (vol < 0.4) {
-    icon.textContent = '🔉';
-  } else if (vol < 0.8) {
-    icon.textContent = '🔊';
-  } else {
-    icon.textContent = '🔊';
+function handleLogout() {
+  var user = AuthService.getCurrentUser();
+  var confirmMsg = user && user.isVip 
+    ? '👑 公主殿下，确定要退出登录吗？' 
+    : '确定要退出登录吗？';
+  
+  if (confirm(confirmMsg)) {
+    AuthService.logout();
+    location.reload();
   }
 }
 
-function seekAudio(e) {
-  var bar = document.getElementById('mp-progress-bar');
-  var rect = bar.getBoundingClientRect();
-  var ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  if (audio.duration) {
-    audio.currentTime = ratio * audio.duration;
+function showApp(user) {
+  document.getElementById('loginOverlay').classList.add('hidden');
+  
+  if (!user) {
+    user = AuthService.getCurrentUser();
   }
-}
-
-// 进度更新
-audio.addEventListener('timeupdate', function() {
-  if (!audio.duration) return;
-  var pct = (audio.currentTime / audio.duration) * 100;
-  document.getElementById('mp-progress-fill').style.width = pct + '%';
-  document.getElementById('mp-time-current').textContent = fmtTime(audio.currentTime);
-});
-
-audio.addEventListener('loadedmetadata', function() {
-  document.getElementById('mp-time-total').textContent = fmtTime(audio.duration);
-  updatePlaylistHighlight();
-});
-
-audio.addEventListener('ended', function() {
-  nextSong();
-});
-
-audio.addEventListener('play', function() {
-  document.getElementById('mp-play-btn').textContent = '⏸';
-  document.getElementById('music-toggle-btn').classList.add('playing');
-});
-
-audio.addEventListener('pause', function() {
-  document.getElementById('mp-play-btn').textContent = '▶';
-  document.getElementById('music-toggle-btn').classList.remove('playing');
-  updatePlaylistHighlight();
-});
-
-function fmtTime(secs) {
-  if (!secs || isNaN(secs)) return '0:00';
-  var m = Math.floor(secs / 60);
-  var s = Math.floor(secs % 60);
-  return m + ':' + String(s).padStart(2, '0');
-}
-
-function toggleMusicPanel() {
-  isPanelOpen = !isPanelOpen;
-  var panel = document.getElementById('music-panel');
-  panel.classList.toggle('show', isPanelOpen);
-  if (isPanelOpen) {
-    // 自动播放当前歌曲（如果还没加载src）
-    if (!audio.src || audio.src === window.location.href) {
-      audio.src = PLAYLIST[currentSongIndex].file;
-      updateNowPlaying();
+  
+  if (user && user.username) {
+    var userInfo = document.getElementById('userInfo');
+    var userName = document.getElementById('userName');
+    var userAvatar = document.getElementById('userAvatar');
+    
+    userInfo.style.display = 'flex';
+    userName.textContent = user.username;
+    
+    // VIP用户显示音乐和主题按钮
+    if (user.isVip) {
+      document.getElementById('btnMusic').style.display = 'flex';
+      document.getElementById('btnTheme').style.display = 'flex';
     }
-    updatePlaylistHighlight();
-  }
-}
-
-// ---------- 切换科目 ----------
-function switchSubject(subj) {
-  if (subj === currentSubject) return;
-  currentSubject = subj;
-
-  Object.keys(APPS).forEach(function(key) {
-    var frame = document.getElementById(APPS[key].frame);
-    var btn   = document.getElementById(APPS[key].btn);
-    if (key === subj) {
-      frame.classList.add('active');
-      btn.classList.add('active');
-    } else {
-      frame.classList.remove('active');
-      btn.classList.remove('active');
-    }
-  });
-
-  document.getElementById('bar-title').textContent = APPS[subj].title;
-}
-
-// ---------- 全屏切换 ----------
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().then(function() {
-      isFullscreen = true;
-    }).catch(function(){});
-  } else {
-    document.exitFullscreen().then(function() {
-      isFullscreen = false;
-    }).catch(function(){});
-  }
-}
-
-// ---------- 等待 iframe 加载 ----------
-function onFrameReady(subj) {
-  document.getElementById('loading-mask').style.display = 'none';
-  document.getElementById('tip-bar').classList.add('show');
-  setTimeout(function() {
-    document.getElementById('tip-bar').classList.remove('show');
-  }, 5000);
-}
-
-window.onFrameReady = onFrameReady;
-window.switchSubject = switchSubject;
-
-// ---------- 转发用户名变化消息给另一个 iframe ----------
-window.addEventListener('message', function(e) {
-  if (!e.data || e.data.type !== 'user_changed') return;
-  var username = e.data.username || '';
-  Object.values(APPS).forEach(function(app) {
-    try {
-      document.getElementById(app.frame).contentWindow.postMessage(e.data, '*');
-    } catch(err) {}
-  });
-});
-
-// ---------- 监听 iframe load ----------
-var loadedFrames = {};
-Object.keys(APPS).forEach(function(key) {
-  var frame = document.getElementById(APPS[key].frame);
-  frame.addEventListener('load', function() {
-    loadedFrames[key] = true;
-    if (key === currentSubject) {
-      onFrameReady(key);
-    }
-  });
-  if (key === currentSubject) {
-    setTimeout(function() {
-      if (!loadedFrames[key]) {
-        document.getElementById('loading-text').textContent =
-          '首次加载稍慢，请耐心等待...';
+    
+    // Compatibility: auto-fix stale cached privileges for non-VIP users
+    if (!user.isVip) {
+      var latestDefault = VIP_CONFIG.defaultPrivileges;
+      var featKeys = Object.keys(latestDefault.features || {});
+      var needUpdate = false;
+      for (var fi = 0; fi < featKeys.length; fi++) {
+        if (!user.privileges || !user.privileges.features ||
+            user.privileges.features[featKeys[fi]] !== latestDefault.features[featKeys[fi]]) {
+          needUpdate = true;
+          break;
+        }
       }
-    }, 3000);
+      if (needUpdate) {
+        user.privileges = JSON.parse(JSON.stringify(latestDefault));
+        localStorage.setItem('quiz_user', JSON.stringify(user));
+      }
+    }
+    
+    // Apply VIP privileges
+    VipService.applyPrivileges(user);
+    
+    // 设置头像
+    if (user.isVip && user.privileges && user.privileges.style && user.privileges.style.avatar) {
+      userAvatar.textContent = user.privileges.style.avatar;
+    } else {
+      userAvatar.textContent = user.username.charAt(0).toUpperCase();
+    }
+  }
+  
+  loadProgress();
+  checkFirstVisitToday();
+}
+
+function checkLogin() {
+  if (AuthService.isLoggedIn()) {
+    showApp();
+  } else {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    setTimeout(function() {
+      document.getElementById('loginUsername').focus();
+    }, 100);
+  }
+}
+
+// ============================================================
+// 模块7: 数据加载
+// ============================================================
+
+function loadProgress() {
+  var jjWrong = JSON.parse(localStorage.getItem('jj_v6_w') || '{}');
+  var jjFave = JSON.parse(localStorage.getItem('jj_v6_f') || '{}');
+  var gsWrong = JSON.parse(localStorage.getItem('gs_v6_w') || '{}');
+  var gsFave = JSON.parse(localStorage.getItem('gs_v6_f') || '{}');
+  
+  var jjWrongCnt = 0, jjFaveCnt = 0;
+  var gsWrongCnt = 0, gsFaveCnt = 0;
+  
+  Object.values(jjWrong).forEach(d => Object.values(d).forEach(qs => jjWrongCnt += qs.length));
+  Object.values(jjFave).forEach(d => Object.values(d).forEach(qs => jjFaveCnt += qs.length));
+  Object.values(gsWrong).forEach(d => Object.values(d).forEach(qs => gsWrongCnt += qs.length));
+  Object.values(gsFave).forEach(d => Object.values(d).forEach(qs => gsFaveCnt += qs.length));
+  
+  document.getElementById('jj-wrong').textContent = jjWrongCnt;
+  document.getElementById('jj-fave').textContent = jjFaveCnt;
+  document.getElementById('gs-wrong').textContent = gsWrongCnt;
+  document.getElementById('gs-fave').textContent = gsFaveCnt;
+  
+  var jjDone = jjWrongCnt + jjFaveCnt;
+  var gsDone = gsWrongCnt + gsFaveCnt;
+  
+  document.getElementById('jj-progress').style.width = (jjDone / APP_CONFIG.dataStats.jj_total * 100) + '%';
+  document.getElementById('jj-progress-text').textContent = jjDone + '/' + APP_CONFIG.dataStats.jj_total + '题';
+  
+  document.getElementById('gs-progress').style.width = (gsDone / APP_CONFIG.dataStats.gs_total * 100) + '%';
+  document.getElementById('gs-progress-text').textContent = gsDone + '/' + APP_CONFIG.dataStats.gs_total + '题';
+  
+  var todayKey = new Date().toISOString().slice(0, 10);
+  var todayData = JSON.parse(localStorage.getItem('daily_' + todayKey) || '{"total":0,"correct":0}');
+  document.getElementById('today-total').textContent = todayData.total;
+  document.getElementById('today-correct').textContent = todayData.total > 0 
+    ? Math.round(todayData.correct / todayData.total * 100) + '%' : '0%';
+  
+  var streak = parseInt(localStorage.getItem('streak_days') || '0');
+  document.getElementById('streak-days').textContent = streak;
+}
+
+// ============================================================
+// 模块8: 功能按钮
+// ============================================================
+
+function toggleMusic() {
+  var user = AuthService.getCurrentUser();
+  if (user && user.isVip) {
+    alert('🎵 VIP专属音乐功能开发中...\n歌单：海浪声、深度专注、放松学习');
+  } else {
+    alert('🎵 音乐功能开发中...\nVIP用户可解锁专属歌单');
+  }
+}
+
+function toggleTheme() {
+  var user = AuthService.getCurrentUser();
+  if (user && user.isVip && user.privileges && user.privileges.theme === 'deep-sea') {
+    document.body.classList.toggle('vip-theme');
+    alert('🎨 深海主题切换中...');
+  } else {
+    alert('🎨 主题切换开发中...\nVIP用户可解锁深海主题');
+  }
+}
+
+function showCalendar() {
+  document.getElementById('calendarModal').classList.add('active');
+  renderCalendar();
+  updateCheckinBanner();
+}
+
+function closeCalendar() {
+  document.getElementById('calendarModal').classList.remove('active');
+}
+
+// ========== 鼓励语库 (200句) ==========
+var ENCOURAGE_POOL = [
+  // 原有100句
+  "今天的你，比昨天更接近梦想一步！",
+  "坚持下去，你已经在成功的路上了！",
+  "每道错题都是下一次进步的垫脚石！",
+  "学习是一场马拉松，坚持就是胜利！",
+  "相信自己，你比想象中更强大！",
+  "每天进步1%，一年后的你将优秀37倍！",
+  "刷题不苦，不刷题才苦！💪",
+  "知识是你的武器，勤奋是你的盾牌！",
+  "今天的辛苦，明天的底气！",
+  "每一分努力，都在为未来铺路！",
+  "别放弃，你离目标只差最后几步！",
+  "刷完这道题，你又变强了一点！",
+  "学习的过程很苦，但结果很甜！",
+  "坚持不是胜利的唯一方式，但胜利必然需要坚持！",
+  "你已经走了很远，不要停下来！",
+  "难者不会，会者不难，继续练！",
+  "知识的积累，就像复利一样神奇！",
+  "今天的汗水，都是明天的资本！",
+  "每一次重复，都在夯实你的基础！",
+  "稳扎稳打，日积月累，方成大器！",
+  "不积跬步，无以至千里！",
+  "你做的每一道题，都在为成功加码！",
+  "困难只是暂时的，坚持才是永恒的！",
+  "今天的努力，明天的底气！",
+  "越努力，越幸运！",
+  "学习是一场修行，每天都是新的开始！",
+  "不要和别人比，和昨天的自己比！",
+  "只要方向正确，就不怕路远！",
+  "刷题是一种修行，坚持是一种态度！",
+  "每解决一个问题，就离目标更近一步！",
+  "学如逆水行舟，不进则退！",
+  "书山有路勤为径，学海无涯苦作舟！",
+  "专注是你最好的武器！",
+  "效率比时间更重要，但时间不可辜负！",
+  "今日事今日毕，明日还有明日事！",
+  "你的潜力，比你认知的更大！",
+  "成功没有捷径，唯有坚持！",
+  "每天多学一点，每年就是一大步！",
+  "错题不可怕，不改错才可怕！",
+  "学习是世界上回报率最高的投资！",
+  "坚持每天打卡，离梦想更近一步！",
+  "你今天的坚持，是你未来的底气！",
+  "别小看每天的积累，滴水可以穿石！",
+  "信心比黄金更重要！",
+  "相信积累的力量，时间会给你答案！",
+  "做对题目是本事，改对错题是成长！",
+  "刷题路上，你不是一个人在战斗！",
+  "每一次练习，都是在为考试做准备！",
+  "量变引起质变，继续刷！",
+  "知识改变命运，学习改变人生！",
+  "备考的辛苦，换来的是未来的从容！",
+  "坚持就是胜利，继续加油！",
+  "你已经比昨天的自己更强了！",
+  "学习这件事，永远不会白费！",
+  "一分耕耘一分收获，继续努力！",
+  "通往成功的路上，没有捷径！",
+  "每天进步一点点，成功就在眼前！",
+  "学习的苦，是人生最轻的苦！",
+  "稳扎稳打，步步为营！",
+  "坚持刷题，你就是下一个黑马！",
+  "不要停下，你的目标就在前方！",
+  "每一步都算数，继续前行！",
+  "学习的路上，没有白走的路！",
+  "你只管努力，剩下的交给时间！",
+  "坚持到底，就是赢家！",
+  "备考是一场修行，修心比刷题更重要！",
+  "别急，慢慢来，比较快！",
+  "保持节奏，稳步前进！",
+  "你比自己想象的更出色！",
+  "坚持学习的人，运气都不会差！",
+  "每一道题都是一次成长的机会！",
+  "别放弃，最难的时刻往往是黎明前的黑暗！",
+  "今天的苦，是明天的甜！",
+  "学习的投资，回报是终身的！",
+  "刷题一时苦，不刷苦一生！",
+  "每天给自己一个微笑，打卡开始！",
+  "坚持打卡，让努力看得见！",
+  "你正在为自己的人生投票！",
+  "每一次练习，都是对自己的奖赏！",
+  "学习的路上，孤独也是一种修行！",
+  "保持初心，继续前行！",
+  "成功=坚持+方法+心态！",
+  "刷题不在多，在懂；在懂，在透！",
+  "备考路上，不要忘记为什么出发！",
+  "每天坚持一点点，你会感谢现在的自己！",
+  "学习是最值得的投资！",
+  "不要被错题打败，要被错题激励！",
+  "你只管努力，时间是公平的见证者！",
+  "坚持梦想，不负韶华！",
+  "每天进步1%，坚持365天，你会惊艳自己！",
+  "备考是一个人的战斗，也是一群人的陪伴！",
+  "相信积累的力量，时间不会辜负每一个努力的人！",
+  "刷题是技术，更是艺术！",
+  "坚持，是一种态度，更是一种习惯！",
+  "成功路上没有偶然，只有必然的努力！",
+  "学习改变命运，知识创造未来！",
+  "不要怕慢，只怕站！",
+  "每天坚持一点点，成功就在不远处等你！",
+  "你做的每一道题，都在为你的梦想加砖添瓦！",
+  // 新增100句
+  "星光不负赶路人，时光不负有心人！",
+  "今天的努力，是明天最好的礼物！",
+  "每一次坚持，都在雕刻更好的自己！",
+  "你走的每一步，都算数！",
+  "别让明天的你，讨厌今天的自己！",
+  "成功的路上并不拥挤，因为坚持的人不多！",
+  "刷题如登山，坚持到顶峰才能看到风景！",
+  "今天的你，已经超越了昨天！",
+  "每一次打卡，都是对自己的承诺！",
+  "学习是一束光，照亮前行的路！",
+  "你的坚持，终将美好！",
+  "每一道题目，都是通向成功的台阶！",
+  "不忘初心，方得始终！",
+  "你的努力，时间都看得见！",
+  "今天的付出，是明天的收获！",
+  "坚持不是一天的事，而是一辈子的事！",
+  "你正在创造属于自己的奇迹！",
+  "每一次突破，都是成长的印记！",
+  "学习是一种态度，坚持是一种力量！",
+  "你比自己想象中更坚韧！",
+  "每一次失败，都是成功的伏笔！",
+  "刷题的路上，风景很美！",
+  "你的坚持，正在改变命运！",
+  "今天多学一点，明天少求人！",
+  "每一次努力，都在为未来加分！",
+  "你是最棒的，别怀疑自己！",
+  "学习的路上，你从不孤单！",
+  "坚持是一种信仰，成功是一种习惯！",
+  "每一次打卡，都是对自己的肯定！",
+  "你正在为自己的未来投资！",
+  "学习是一场旅行，坚持是门票！",
+  "你的努力，正在闪闪发光！",
+  "每一次挑战，都是成长的机会！",
+  "今天的学习，明天的底气！",
+  "坚持到底，胜利属于你！",
+  "你的每一份努力，都值得被看见！",
+  "学习是一种修行，坚持是一种境界！",
+  "你正在成为更好的自己！",
+  "每一次进步，都值得庆祝！",
+  "坚持的人，运气不会太差！",
+  "你的坚持，正在开花结果！",
+  "学习是一扇门，坚持是钥匙！",
+  "你正在书写属于自己的故事！",
+  "每一次努力，都是对未来的告白！",
+  "今天的坚持，明天的骄傲！",
+  "你的潜力，正在被激发！",
+  "学习是一种享受，坚持是一种幸福！",
+  "你正在为自己的人生负责！",
+  "每一次打卡，都是对自己的奖励！",
+  "你的努力，正在被世界看见！",
+  "学习是一座桥，坚持是基石！",
+  "你正在创造属于自己的辉煌！",
+  "每一次突破，都是对自己的超越！",
+  "今天的付出，明天的回报！",
+  "你的坚持，正在引领未来！",
+  "学习是一种能力，坚持是一种品质！",
+  "你正在为自己的梦想买单！",
+  "每一次坚持，都是对自己的承诺！",
+  "你的努力，正在照亮前路！",
+  "学习是一盏灯，坚持是火焰！",
+  "你正在成为你想要成为的人！",
+  "每一次进步，都是对自己的肯定！",
+  "今天的坚持，明天的成功！",
+  "你的坚持，正在改变世界！",
+  "学习是一种享受，坚持是一种智慧！",
+  "你正在为自己的人生加分！",
+  "每一次努力，都在为梦想蓄力！",
+  "你的坚持，正在创造奇迹！",
+  "学习是一条路，坚持是方向！",
+  "你正在为自己的未来铺路！",
+  "每一次打卡，都是对自己的信任！",
+  "你的努力，正在被时间铭记！",
+  "学习是一种力量，坚持是一种信念！",
+  "你正在成为最好的自己！",
+  "每一次突破，都是对自己的证明！",
+  "今天的努力，明天的光芒！",
+  "你的坚持，正在书写传奇！",
+  "学习是一种态度，坚持是一种勇气！",
+  "你正在为自己的梦想奋斗！",
+  "每一次坚持，都是对自己的投资！",
+  "你的努力，正在开花结果！",
+  "学习是一把钥匙，坚持是门！",
+  "你正在为自己的人生导航！",
+  "每一次进步，都是对自己的奖赏！",
+  "今天的坚持，明天的荣耀！",
+  "你的坚持，正在照亮梦想！",
+  "学习是一种修行，坚持是一种智慧！",
+  "你正在为自己的未来奠定基础！",
+  "每一次努力，都在为成功做准备！",
+  "你的坚持，正在改变命运！",
+  "学习是一场旅程，坚持是风景！",
+  "你正在成为自己的英雄！",
+  "每一次打卡，都是对自己的赞美！",
+  "你的努力，正在成就梦想！",
+  "学习是一座山，坚持是攀登！",
+  "你正在为自己的人生添砖加瓦！",
+  "每一次坚持，都是对自己的成就！",
+  "你的坚持，正在创造未来！",
+  "每一次学习，都是对自己的投资！",
+  "你的努力，正在书写辉煌！",
+  "坚持就是胜利！"
+];
+
+var ENCOURAGE_POOL_LENGTH = ENCOURAGE_POOL.length;
+
+// ========== 日历数据管理 ==========
+var CalendarData = {
+  KEY: 'hqwx_calendar_v1',
+
+  getAll: function() {
+    var raw = localStorage.getItem(this.KEY);
+    if (!raw) return { records: {}, streak: 0, total: 0, totalLearn: 0 };
+    try { return JSON.parse(raw); } catch(e) { return { records: {}, streak: 0, total: 0, totalLearn: 0 }; }
+  },
+
+  save: function(data) {
+    localStorage.setItem(this.KEY, JSON.stringify(data));
+  },
+
+  getTodayKey: function(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  },
+
+  isCheckedToday: function() {
+    var data = this.getAll();
+    return !!data.records[this.getTodayKey()];
+  },
+
+  checkin: function() {
+    var data = this.getAll();
+    var key = this.getTodayKey();
+    if (data.records[key]) return false; // already checked in
+    data.records[key] = { date: key };
+    data.total += 1;
+    data.totalLearn += 1;
+    // Calculate streak
+    data.streak = this.calcStreak(data.records);
+    this.save(data);
+    return true;
+  },
+
+  calcStreak: function(records) {
+    var streak = 0;
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    // Walk backwards from today
+    for (var i = 0; i < 365; i++) {
+      var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      if (records[key]) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  },
+
+  incrementLearn: function() {
+    var data = this.getAll();
+    data.totalLearn += 1;
+    this.save(data);
+  }
+};
+
+// ========== 日历渲染 ==========
+var currentCalYear = new Date().getFullYear();
+var currentCalMonth = new Date().getMonth();
+
+function renderCalendar() {
+  var d = new Date(currentCalYear, currentCalMonth, 1);
+  document.getElementById('calNavTitle').textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月';
+
+  var grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+
+  var weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+  weekDays.forEach(function(w) {
+    var wd = document.createElement('div');
+    wd.className = 'calendar-weekday';
+    wd.textContent = w;
+    grid.appendChild(wd);
+  });
+
+  var firstDow = new Date(currentCalYear, currentCalMonth, 1).getDay();
+  for (var i = 0; i < firstDow; i++) {
+    var empty = document.createElement('div');
+    empty.className = 'calendar-day empty';
+    grid.appendChild(empty);
+  }
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  var calData = CalendarData.getAll();
+  var daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var cell = document.createElement('div');
+    cell.className = 'calendar-day';
+
+    var cellDate = new Date(currentCalYear, currentCalMonth, day);
+    cellDate.setHours(0, 0, 0, 0);
+    cellDate.setDate(cellDate.getDate() + 1); // trick to compare properly
+    var cellDate2 = new Date(currentCalYear, currentCalMonth, day);
+    cellDate2.setHours(0, 0, 0, 0);
+
+    var isFuture = cellDate2 > today;
+    var isToday = cellDate2.getTime() === today.getTime();
+    var key = currentCalYear + '-' + String(currentCalMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var isChecked = !!calData.records[key];
+
+    if (isToday) cell.classList.add('today');
+    if (isChecked && !isToday) cell.classList.add('checked');
+    if (isFuture) cell.classList.add('future');
+
+    cell.textContent = day;
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('streakDays').textContent = calData.streak;
+  document.getElementById('totalDays').textContent = calData.total;
+  document.getElementById('totalLearn').textContent = calData.totalLearn;
+}
+
+function changeMonth(dir) {
+  currentCalMonth += dir;
+  if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
+  if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
+  renderCalendar();
+}
+
+// ========== 打卡 Banner ==========
+function updateCheckinBanner() {
+  var banner = document.getElementById('checkinBanner');
+  var icon = document.getElementById('bannerIcon');
+  var text = document.getElementById('bannerText');
+  var sub = document.getElementById('bannerSub');
+
+  var checked = CalendarData.isCheckedToday();
+  if (checked) {
+    banner.classList.add('checked');
+    banner.classList.remove('hidden');
+    icon.textContent = '🎉';
+    text.textContent = '今日已打卡！';
+    sub.textContent = '太棒了，继续保持！';
+  } else {
+    banner.classList.remove('checked');
+    banner.classList.add('hidden');
+  }
+}
+
+function doCheckin() {
+  if (CalendarData.isCheckedToday()) {
+    alert('今日已打卡，无需重复打卡！');
+    return;
+  }
+  CalendarData.checkin();
+  updateCheckinBanner();
+  renderCalendar();
+  // Show encourage message
+  var idx = Math.floor(Math.random() * ENCOURAGE_POOL_LENGTH);
+  alert('🎉 打卡成功！\\n\\n' + ENCOURAGE_POOL[idx]);
+}
+
+// ========== 鼓励弹窗控制 ==========
+function showEncourageModal(needCheckin) {
+  var modal = document.getElementById('encourageModal');
+  var title = document.getElementById('encourageTitle');
+  var text = document.getElementById('encourageText');
+  var icon = document.getElementById('encourageIcon');
+  var checkinBtn = document.getElementById('encourageCheckinBtn');
+  
+  // 随机选择鼓励语
+  var idx = Math.floor(Math.random() * ENCOURAGE_POOL_LENGTH);
+  text.textContent = ENCOURAGE_POOL[idx];
+  
+  if (needCheckin) {
+    // 未打卡：显示打卡按钮
+    icon.textContent = '🌟';
+    title.textContent = '新的一天开始啦！';
+    checkinBtn.style.display = 'inline-flex';
+  checkinBtn.textContent = '📅 立即打卡';
+  checkinBtn.onclick = goCheckin;
+  } else {
+    // 已打卡：隐藏打卡按钮
+    icon.textContent = '🎉';
+    title.textContent = '欢迎回来！';
+    checkinBtn.style.display = 'none';
+  }
+  
+  modal.classList.add('active');
+}
+
+function closeEncourage() {
+  document.getElementById('encourageModal').classList.remove('active');
+}
+
+function goCheckin() {
+  closeEncourage();
+  showCalendar();
+  // 自动执行打卡
+  setTimeout(function() {
+    if (!CalendarData.isCheckedToday()) {
+      doCheckin();
+    }
+  }, 300);
+}
+
+// 点击日历按钮时显示鼓励弹窗
+function showCalendarEncourage() {
+  var needCheckin = !CalendarData.isCheckedToday();
+  showEncourageModal(needCheckin);
+}
+
+// ========== 启动时显示鼓励弹窗 ==========
+var _checkedTodayThisSession = false;
+
+function checkFirstVisitToday() {
+  if (_checkedTodayThisSession) return;
+  _checkedTodayThisSession = true;
+
+  if (!AuthService.isLoggedIn()) return;
+
+  // 每次进入都显示鼓励弹窗
+  var needCheckin = !CalendarData.isCheckedToday();
+  
+  // 延迟显示弹窗，等待页面完全加载
+  setTimeout(function() {
+    showEncourageModal(needCheckin);
+  }, 500);
+}
+
+
+var API_BASE = 'https://odd-scene-26d8.wshu70682.workers.dev';
+
+function getCurrentUserId() {
+  var user = AuthService.getCurrentUser();
+  return user ? user.username : null;
+}
+
+function showTeam() {
+  var modal = document.getElementById('teamModal');
+  modal.classList.add('active');
+  loadMyTeam();
+}
+
+function closeTeam() {
+  document.getElementById('teamModal').classList.remove('active');
+}
+
+async function createTeam() {
+  var nameInput = document.getElementById('teamNameInput');
+  var name = nameInput.value.trim();
+  if (!name) { alert('请输入队伍名称'); return; }
+  var userId = getCurrentUserId();
+  if (!userId) { alert('请先登录'); return; }
+  try {
+    var res = await fetch(API_BASE + '/api/team', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, captain_id: userId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      nameInput.value = '';
+      document.getElementById('myTeamIdDisplay').textContent = data.team_id;
+      document.getElementById('teamIdBox').style.display = 'block';
+      alert('队伍创建成功，队伍ID: ' + data.team_id + '\n快分享给小伙伴加入吧');
+      loadMyTeam();
+    } else {
+      alert(data.error || '创建失败');
+    }
+  } catch (e) {
+    alert('创建失败，请检查网络');
+  }
+}
+
+async function joinTeam() {
+  var teamIdInput = document.getElementById('teamIdInput');
+  var teamId = teamIdInput.value.trim();
+  if (!teamId) { alert('请输入队伍ID'); return; }
+  var userId = getCurrentUserId();
+  if (!userId) { alert('请先登录'); return; }
+  try {
+    var res = await fetch(API_BASE + '/api/team/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, team_id: teamId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      teamIdInput.value = '';
+      alert('加入成功！');
+      loadMyTeam();
+    } else {
+      alert(data.error || '加入失败');
+    }
+  } catch (e) {
+    alert('加入失败，请检查网络');
+  }
+}
+
+async function leaveTeam() {
+  var userId = getCurrentUserId();
+  var teamId = document.getElementById('leaveTeamBtn').dataset.teamId;
+  if (!confirm('确定要退出这个队伍吗？')) return;
+  try {
+    var res = await fetch(API_BASE + '/api/team/leave', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, team_id: teamId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      loadMyTeam();
+    } else {
+      alert(data.error || '退出失败');
+    }
+  } catch (e) {
+    alert('退出失败，请检查网络');
+  }
+}
+
+async function loadMyTeam() {
+  var userId = getCurrentUserId();
+  var content = document.getElementById('myTeamContent');
+  var idBox = document.getElementById('teamIdBox');
+  var leaveBtn = document.getElementById('leaveTeamBtn');
+  if (!userId) {
+    content.innerHTML = '<div class="team-empty"><div class="team-empty-icon">🔒</div><div>请先登录查看队伍</div></div>';
+    idBox.style.display = 'none';
+    leaveBtn.style.display = 'none';
+    return;
+  }
+  try {
+    var res = await fetch(API_BASE + '/api/team/my?user_id=' + encodeURIComponent(userId));
+    var data = await res.json();
+    if (data.team) {
+      document.getElementById('myTeamIdDisplay').textContent = data.team.id;
+      idBox.style.display = 'block';
+      var html = '<ul class="team-list">';
+      for (var i = 0; i < data.members.length; i++) {
+        var m = data.members[i];
+        html += '<li class="team-member"><div class="member-avatar">' + (m.is_vip ? '👑' : m.user_id.charAt(0).toUpperCase()) + '</div><div class="member-info"><div class="member-name">' + m.user_id + (m.is_vip ? '<span class="member-tag">队长</span>' : '') + '</div></div></li>';
+      }
+      html += '</ul>';
+      content.innerHTML = html;
+      leaveBtn.dataset.teamId = data.team.id;
+      leaveBtn.style.display = data.team.captain_id === userId ? 'none' : 'block';
+    } else {
+      content.innerHTML = '<div class="team-empty"><div class="team-empty-icon">👥</div><div>还没有队伍，快创建或加入一个吧</div></div>';
+      idBox.style.display = 'none';
+      leaveBtn.style.display = 'none';
+    }
+  } catch (e) {
+    content.innerHTML = '<div class="team-empty"><div class="team-empty-icon">⚠️</div><div>加载失败，请检查网络</div></div>';
+  }
+}
+
+function showRanking() {
+  var modal = document.getElementById('rankModal');
+  modal.classList.add('active');
+  loadRanking('questions');
+}
+
+function closeRanking() {
+  document.getElementById('rankModal').classList.remove('active');
+}
+
+function switchRankTab(type, btn) {
+  var tabs = document.querySelectorAll('.rank-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  btn.classList.add('active');
+  loadRanking(type);
+}
+
+async function loadRanking(type) {
+  var userId = getCurrentUserId();
+  var list = document.getElementById('rankList');
+  list.innerHTML = '<div class="rank-empty"><div class="empty-icon">🏆</div><div>加载中...</div></div>';
+  try {
+    var res = await fetch(API_BASE + '/api/ranking?type=' + type);
+    var data = await res.json();
+    if (!data.data || data.data.length === 0) {
+      list.innerHTML = '<div class="rank-empty"><div class="empty-icon">🏆</div><div>还没有排行榜数据</div></div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < data.data.length; i++) {
+      var item = data.data[i];
+      var pos = i + 1;
+      var posClass = pos === 1 ? 'gold' : pos === 2 ? 'silver' : pos === 3 ? 'bronze' : 'normal';
+      var isMe = item.id === userId;
+      var avatarClass = item.is_vip ? 'vip' : 'normal';
+      var avatarText = item.is_vip ? '👑' : (item.nickname || item.id).charAt(0).toUpperCase();
+      var value = '';
+      if (type === 'questions') {
+        value = '<span class="rank-num">' + item.total_questions + '</span><span class="rank-unit">题</span>';
+      } else if (type === 'checkin') {
+        value = '<span class="rank-num">' + item.checkin_days + '</span><span class="rank-unit">天</span>';
+      } else {
+        value = '<span class="rank-num">' + item.accuracy + '</span><span class="rank-unit">%</span>';
+      }
+      var nameExtra = '';
+      if (item.is_vip) nameExtra += ' <span class="vip-tag">VIP</span>';
+      if (isMe) nameExtra += ' <span class="me-tag">我</span>';
+      var sub = '';
+      if (type === 'questions') {
+        sub = '正确 ' + item.total_correct + ' 题 · 正确率 ' + item.accuracy + '%';
+      } else if (type === 'checkin') {
+        sub = '累计 ' + item.total_questions + ' 题 · 正确率 ' + item.accuracy + '%';
+      } else {
+        sub = '累计 ' + item.total_questions + ' 题 · 正确 ' + item.total_correct + ' 题';
+      }
+      html += '<li class="rank-item' + (isMe ? ' me' : '') + '">';
+      html += '<div class="rank-pos ' + posClass + '">' + pos + '</div>';
+      html += '<div class="rank-avatar ' + avatarClass + '">' + avatarText + '</div>';
+      html += '<div class="rank-info"><div class="rank-name">' + (isMe ? item.id : (item.nickname || item.id)) + nameExtra + '</div><div class="rank-sub">' + sub + '</div></div>';
+      html += '<div class="rank-value">' + value + '</div>';
+      html += '</li>';
+    }
+    list.innerHTML = html;
+  } catch (e) {
+    list.innerHTML = '<div class="rank-empty"><div class="empty-icon">⚠️</div><div>加载失败</div></div>';
+  }
+}
+
+function showSettings() {
+  var user = AuthService.getCurrentUser();
+  
+  // 更新设置面板用户信息
+  var settingsUserInfo = document.getElementById('settingsUserInfo');
+  var settingsAvatar = document.getElementById('settingsAvatar');
+  var settingsUsername = document.getElementById('settingsUsername');
+  var settingsUserType = document.getElementById('settingsUserType');
+  
+  if (user) {
+    settingsUsername.textContent = user.username;
+    
+    if (user.isVip) {
+      settingsUserInfo.classList.add('vip');
+      settingsAvatar.textContent = '👑';
+      settingsUserType.textContent = 'VIP用户';
+    } else {
+      settingsUserInfo.classList.remove('vip');
+      settingsAvatar.textContent = user.username.charAt(0).toUpperCase();
+      settingsUserType.textContent = '普通用户';
+    }
+  }
+  
+  // 显示弹窗
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.add('hidden');
+}
+
+function showProfile() {
+  alert('👤 个人资料功能开发中...');
+}
+
+function showDataManage() {
+  alert('📊 数据管理功能开发中...\n\n可导出/导入学习数据');
+}
+
+// 点击弹窗外部关闭
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('settingsModal');
+  if (e.target === modal) {
+    closeSettings();
   }
 });
 
-if (location.protocol === 'file:') {
-  document.getElementById('fullscreen-btn').style.display = 'none';
+// ============================================================
+// 模块9: 事件绑定
+// ============================================================
+
+// Enter键登录
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) {
+    handleLogin();
+  }
+});
+
+// ============================================================
+// 模块10: 初始化
+// ============================================================
+
+// 检测环境
+APP_CONFIG.env = detectEnvironment();
+
+// 启动应用
+checkLogin();
+
+// 定时刷新进度
+setInterval(loadProgress, 60000);
+
+// 页面重新获得焦点时立即刷新进度（从子页面返回时触发）
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) loadProgress();
+});
+window.addEventListener('focus', function() {
+  loadProgress();
+});
+
+
+
+// ============================================================
+// 模块1: 系统配置 - 后期可改为从API获取
+// ============================================================
+
+var APP_CONFIG = {
+  version: '2.1',
+  dataStats: {
+    jj_total: 5343,
+    gs_total: 2160
+  },
+  env: 'local',  // 'local' | 'production' | 'development'
+  api: {
+    baseUrl: '',  // 后期填充，如 '/api'
+    auth: '/auth',
+    vip: '/vip/config'
+  }
+};
+
+// ============================================================
+// 模块2: VIP用户配置 - 后期可改为从API获取
+// ============================================================
+
+var VIP_CONFIG = {
+  // VIP用户列表 - 后期可从后端获取
+  users: {
+    '瑶瑶公主': {
+      password: '020124',  // 后端部署后改为hash验证
+      privileges: {
+        // 专属主题
+        theme: 'deep-sea',
+        
+        // 音乐权限
+        music: {
+          enabled: true,
+          playlist: ['ocean-waves', 'deep-focus', 'study-relax'],
+          exclusive: false  // 专属歌单
+        },
+        
+        // 功能开关
+        features: {
+          calendar: true,
+          team: true,
+          ranking: true,
+          exclusive: false
+        },
+        
+        // 专属样式
+        style: {
+          avatar: '👑',
+          badge: 'VIP',
+          welcomeText: '👑 公主殿下，今天也要加油哦！'
+        }
+      }
+    }
+    
+    // 后期可添加更多VIP用户
+    // '其他用户': { ... }
+  },
+  
+  // 默认用户权限
+  defaultPrivileges: {
+    theme: 'white',
+    music: { enabled: false, playlist: [], exclusive: false },
+    features: { calendar: true, team: true, ranking: true, exclusive: false },
+    style: { avatar: null, badge: null, welcomeText: null }
+  }
+};
+
+// ============================================================
+// 模块3: 环境检测工具
+// ============================================================
+
+function detectEnvironment() {
+  var host = location.hostname;
+  var protocol = location.protocol;
+  
+  if (host === 'localhost' || host === '127.0.0.1' || protocol === 'file:') {
+    return 'local';
+  } else if (host.includes('github.io') || host.includes('vercel.app')) {
+    return 'production';
+  } else {
+    return 'development';
+  }
 }
 
-// ---------- PWA Service Worker ----------
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js').catch(function() {});
+function isLocalMode() {
+  return detectEnvironment() === 'local';
+}
+
+// ============================================================
+// 模块4: 认证服务 - 后期可替换为API调用
+// ============================================================
+
+var AuthService = {
+  // 当前版本：本地验证（后期替换为API）
+  login: function(username, password) {
+    var config = VIP_CONFIG.users[username];
+    
+    // VIP用户验证
+    if (config) {
+      if (password !== config.password) {
+        return { success: false, error: '密码错误，请重新输入' };
+      }
+      return {
+        success: true,
+        user: {
+          username: username,
+          isVip: true,
+          privileges: config.privileges,
+          loginTime: new Date().toISOString()
+        }
+      };
+    }
+    
+    // 普通用户：任意用户名密码均可
+    if (username && password) {
+      return {
+        success: true,
+        user: {
+          username: username,
+          isVip: false,
+          privileges: VIP_CONFIG.defaultPrivileges,
+          loginTime: new Date().toISOString()
+        }
+      };
+    }
+    
+    return { success: false, error: '请输入用户名和密码' };
+  },
+  
+  // 后期API版本（预留接口）
+  loginAPI: async function(username, password) {
+    // TODO: 接入后端API
+    // const res = await fetch(APP_CONFIG.api.baseUrl + APP_CONFIG.api.auth, {
+    //   method: 'POST',
+    //   body: JSON.stringify({ username, password })
+    // });
+    // return res.json();
+    return this.login(username, password);
+  },
+  
+  logout: function() {
+    localStorage.removeItem('quiz_user');
+    localStorage.removeItem('quiz_logged_in');
+  },
+  
+  getCurrentUser: function() {
+    return JSON.parse(localStorage.getItem('quiz_user') || 'null');
+  },
+  
+  isLoggedIn: function() {
+    return localStorage.getItem('quiz_logged_in') === 'true';
+  }
+};
+
+// ============================================================
+// 模块5: VIP特权服务
+// ============================================================
+
+var VipService = {
+  // 应用VIP特权
+  applyPrivileges: function(user) {
+    if (!user || !user.privileges) return;
+    
+    var priv = user.privileges;
+    
+    // 应用主题
+    if (priv.theme === 'deep-sea') {
+      document.body.classList.add('vip-theme');
+    }
+    
+    // 应用样式
+    if (priv.style) {
+      // 欢迎文字
+      if (priv.style.welcomeText) {
+        var title = document.getElementById('welcomeTitle');
+        if (title) title.textContent = priv.style.welcomeText;
+      }
+      
+      // VIP用户信息样式
+      if (user.isVip) {
+        var userInfo = document.getElementById('userInfo');
+        if (userInfo) userInfo.classList.add('vip-user');
+      }
+    }
+    
+    // 应用功能开关
+    if (priv.features) {
+      Object.keys(priv.features).forEach(function(key) {
+        var btn = document.getElementById('feature-' + key);
+        if (btn && priv.features[key] === false) {
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+        }
+        if (btn && priv.features.exclusive && key !== 'exclusive') {
+          btn.classList.add('vip-only');
+        }
+      });
+    }
+  },
+  
+  // 获取用户配置（后期可从API获取）
+  getConfig: function(username) {
+    if (VIP_CONFIG.users[username]) {
+      return VIP_CONFIG.users[username].privileges;
+    }
+    return VIP_CONFIG.defaultPrivileges;
+  },
+  
+  // 后期API版本（预留接口）
+  getConfigAPI: async function(username) {
+    // TODO: 接入后端API
+    // const res = await fetch(APP_CONFIG.api.baseUrl + APP_CONFIG.api.vip + '/' + username);
+    // return res.json();
+    return this.getConfig(username);
+  }
+};
+
+// ============================================================
+// 模块6: UI控制
+// ============================================================
+
+function handleLogin() {
+  var username = document.getElementById('loginUsername').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var errorBox = document.getElementById('loginError');
+  
+  // 清空错误
+  errorBox.classList.remove('show');
+  errorBox.textContent = '';
+  
+  // 验证输入
+  if (!username) {
+    errorBox.textContent = '请输入用户名';
+    errorBox.classList.add('show');
+    document.getElementById('loginUsername').focus();
+    return;
+  }
+  
+  if (!password) {
+    errorBox.textContent = '请输入密码';
+    errorBox.classList.add('show');
+    document.getElementById('loginPassword').focus();
+    return;
+  }
+  
+  // 使用AuthService验证
+  var result = AuthService.login(username, password);
+  
+  if (!result.success) {
+    errorBox.textContent = result.error;
+    errorBox.classList.add('show');
+    return;
+  }
+  
+  // 登录成功
+  localStorage.setItem('quiz_user', JSON.stringify(result.user));
+  localStorage.setItem('quiz_logged_in', 'true');
+  
+  showApp(result.user);
+}
+
+function closeRegister() {
+  var rm = document.getElementById('registerModal');
+  if (rm) rm.classList.add('hidden');
+}
+
+function showRegister() {
+  var rm = document.getElementById('registerModal');
+  if (rm) {
+    rm.classList.remove('hidden');
+    document.getElementById('registerError').textContent = '';
+  } else {
+    // 动态创建注册弹窗
+    var div = document.createElement('div');
+    div.id = 'registerModal';
+    div.className = 'login-overlay';
+    div.innerHTML = `
+      <div class="login-glow login-glow-1"></div>
+      <div class="login-box">
+        <div class="login-logo">
+          <div class="login-logo-icon">📚</div>
+          <h2>注册账号</h2>
+          <p>开启你的每日一练</p>
+        </div>
+        <div class="login-error" id="registerError"></div>
+        <div class="login-input-group">
+          <label>用户名</label>
+          <div class="login-input-wrap">
+            <input type="text" id="regUsername" placeholder="请输入用户名" autocomplete="off">
+            <span class="input-icon">👤</span>
+          </div>
+        </div>
+        <div class="login-input-group">
+          <label>密码</label>
+          <div class="login-input-wrap">
+            <input type="password" id="regPassword" placeholder="请输入密码（至少4位）">
+            <span class="input-icon">🔒</span>
+          </div>
+        </div>
+        <button class="login-btn" onclick="handleRegister()">注 册</button>
+        <div class="login-footer">
+          <a href="javascript:void(0)" onclick="closeRegister();showLogin()">已有账号？<span>去登录</span></a>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(div);
+    showRegister(); // 再次调用显示
+  }
+}
+
+function handleRegister() {
+  var username = document.getElementById('regUsername').value.trim();
+  var password = document.getElementById('regPassword').value;
+  var errorBox = document.getElementById('registerError');
+  if (!username) { errorBox.textContent = '请输入用户名'; errorBox.classList.add('show'); return; }
+  if (!password || password.length < 4) { errorBox.textContent = '密码至少4个字符'; errorBox.classList.add('show'); return; }
+  
+  var API_BASE = 'https://odd-scene-26d8.wshu70682.workers.dev';
+  fetch(API_BASE + '/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username, password: password })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      alert('注册成功！请登录');
+      closeRegister();
+      document.getElementById('loginUsername').value = username;
+      document.getElementById('loginPassword').focus();
+    } else {
+      errorBox.textContent = data.error || '注册失败';
+      errorBox.classList.add('show');
+    }
+  })
+  .catch(function() {
+    errorBox.textContent = '网络错误，请稍后重试';
+    errorBox.classList.add('show');
   });
 }
 
-// ---------- 初始化歌单 ----------
-buildPlaylist();
-if (localStorage.getItem('music_vol')) {
-  audio.volume = parseFloat(localStorage.getItem('music_vol'));
+
+function handleLogout() {
+  var user = AuthService.getCurrentUser();
+  var confirmMsg = user && user.isVip 
+    ? '👑 公主殿下，确定要退出登录吗？' 
+    : '确定要退出登录吗？';
+  
+  if (confirm(confirmMsg)) {
+    AuthService.logout();
+    location.reload();
+  }
 }
+
+function showApp(user) {
+  document.getElementById('loginOverlay').classList.add('hidden');
+  
+  if (!user) {
+    user = AuthService.getCurrentUser();
+  }
+  
+  if (user && user.username) {
+    var userInfo = document.getElementById('userInfo');
+    var userName = document.getElementById('userName');
+    var userAvatar = document.getElementById('userAvatar');
+    
+    userInfo.style.display = 'flex';
+    userName.textContent = user.username;
+    
+    // VIP用户显示音乐和主题按钮
+    if (user.isVip) {
+      document.getElementById('btnMusic').style.display = 'flex';
+      document.getElementById('btnTheme').style.display = 'flex';
+    }
+    
+    // Compatibility: auto-fix stale cached privileges for non-VIP users
+    if (!user.isVip) {
+      var latestDefault = VIP_CONFIG.defaultPrivileges;
+      var featKeys = Object.keys(latestDefault.features || {});
+      var needUpdate = false;
+      for (var fi = 0; fi < featKeys.length; fi++) {
+        if (!user.privileges || !user.privileges.features ||
+            user.privileges.features[featKeys[fi]] !== latestDefault.features[featKeys[fi]]) {
+          needUpdate = true;
+          break;
+        }
+      }
+      if (needUpdate) {
+        user.privileges = JSON.parse(JSON.stringify(latestDefault));
+        localStorage.setItem('quiz_user', JSON.stringify(user));
+      }
+    }
+    
+    // Apply VIP privileges
+    VipService.applyPrivileges(user);
+    
+    // 设置头像
+    if (user.isVip && user.privileges && user.privileges.style && user.privileges.style.avatar) {
+      userAvatar.textContent = user.privileges.style.avatar;
+    } else {
+      userAvatar.textContent = user.username.charAt(0).toUpperCase();
+    }
+  }
+  
+  loadProgress();
+  checkFirstVisitToday();
+}
+
+function checkLogin() {
+  if (AuthService.isLoggedIn()) {
+    showApp();
+  } else {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    setTimeout(function() {
+      document.getElementById('loginUsername').focus();
+    }, 100);
+  }
+}
+
+// ============================================================
+// 模块7: 数据加载
+// ============================================================
+
+function loadProgress() {
+  var jjWrong = JSON.parse(localStorage.getItem('jj_v6_w') || '{}');
+  var jjFave = JSON.parse(localStorage.getItem('jj_v6_f') || '{}');
+  var gsWrong = JSON.parse(localStorage.getItem('gs_v6_w') || '{}');
+  var gsFave = JSON.parse(localStorage.getItem('gs_v6_f') || '{}');
+  
+  var jjWrongCnt = 0, jjFaveCnt = 0;
+  var gsWrongCnt = 0, gsFaveCnt = 0;
+  
+  Object.values(jjWrong).forEach(d => Object.values(d).forEach(qs => jjWrongCnt += qs.length));
+  Object.values(jjFave).forEach(d => Object.values(d).forEach(qs => jjFaveCnt += qs.length));
+  Object.values(gsWrong).forEach(d => Object.values(d).forEach(qs => gsWrongCnt += qs.length));
+  Object.values(gsFave).forEach(d => Object.values(d).forEach(qs => gsFaveCnt += qs.length));
+  
+  document.getElementById('jj-wrong').textContent = jjWrongCnt;
+  document.getElementById('jj-fave').textContent = jjFaveCnt;
+  document.getElementById('gs-wrong').textContent = gsWrongCnt;
+  document.getElementById('gs-fave').textContent = gsFaveCnt;
+  
+  var jjDone = jjWrongCnt + jjFaveCnt;
+  var gsDone = gsWrongCnt + gsFaveCnt;
+  
+  document.getElementById('jj-progress').style.width = (jjDone / APP_CONFIG.dataStats.jj_total * 100) + '%';
+  document.getElementById('jj-progress-text').textContent = jjDone + '/' + APP_CONFIG.dataStats.jj_total + '题';
+  
+  document.getElementById('gs-progress').style.width = (gsDone / APP_CONFIG.dataStats.gs_total * 100) + '%';
+  document.getElementById('gs-progress-text').textContent = gsDone + '/' + APP_CONFIG.dataStats.gs_total + '题';
+  
+  var todayKey = new Date().toISOString().slice(0, 10);
+  var todayData = JSON.parse(localStorage.getItem('daily_' + todayKey) || '{"total":0,"correct":0}');
+  document.getElementById('today-total').textContent = todayData.total;
+  document.getElementById('today-correct').textContent = todayData.total > 0 
+    ? Math.round(todayData.correct / todayData.total * 100) + '%' : '0%';
+  
+  var streak = parseInt(localStorage.getItem('streak_days') || '0');
+  document.getElementById('streak-days').textContent = streak;
+}
+
+// ============================================================
+// 模块8: 功能按钮
+// ============================================================
+
+function toggleMusic() {
+  var user = AuthService.getCurrentUser();
+  if (user && user.isVip) {
+    alert('🎵 VIP专属音乐功能开发中...\n歌单：海浪声、深度专注、放松学习');
+  } else {
+    alert('🎵 音乐功能开发中...\nVIP用户可解锁专属歌单');
+  }
+}
+
+function toggleTheme() {
+  var user = AuthService.getCurrentUser();
+  if (user && user.isVip && user.privileges && user.privileges.theme === 'deep-sea') {
+    document.body.classList.toggle('vip-theme');
+    alert('🎨 深海主题切换中...');
+  } else {
+    alert('🎨 主题切换开发中...\nVIP用户可解锁深海主题');
+  }
+}
+
+function showCalendar() {
+  document.getElementById('calendarModal').classList.add('active');
+  renderCalendar();
+  updateCheckinBanner();
+}
+
+function closeCalendar() {
+  document.getElementById('calendarModal').classList.remove('active');
+}
+
+// ========== 鼓励语库 (200句) ==========
+var ENCOURAGE_POOL = [
+  // 原有100句
+  "今天的你，比昨天更接近梦想一步！",
+  "坚持下去，你已经在成功的路上了！",
+  "每道错题都是下一次进步的垫脚石！",
+  "学习是一场马拉松，坚持就是胜利！",
+  "相信自己，你比想象中更强大！",
+  "每天进步1%，一年后的你将优秀37倍！",
+  "刷题不苦，不刷题才苦！💪",
+  "知识是你的武器，勤奋是你的盾牌！",
+  "今天的辛苦，明天的底气！",
+  "每一分努力，都在为未来铺路！",
+  "别放弃，你离目标只差最后几步！",
+  "刷完这道题，你又变强了一点！",
+  "学习的过程很苦，但结果很甜！",
+  "坚持不是胜利的唯一方式，但胜利必然需要坚持！",
+  "你已经走了很远，不要停下来！",
+  "难者不会，会者不难，继续练！",
+  "知识的积累，就像复利一样神奇！",
+  "今天的汗水，都是明天的资本！",
+  "每一次重复，都在夯实你的基础！",
+  "稳扎稳打，日积月累，方成大器！",
+  "不积跬步，无以至千里！",
+  "你做的每一道题，都在为成功加码！",
+  "困难只是暂时的，坚持才是永恒的！",
+  "今天的努力，明天的底气！",
+  "越努力，越幸运！",
+  "学习是一场修行，每天都是新的开始！",
+  "不要和别人比，和昨天的自己比！",
+  "只要方向正确，就不怕路远！",
+  "刷题是一种修行，坚持是一种态度！",
+  "每解决一个问题，就离目标更近一步！",
+  "学如逆水行舟，不进则退！",
+  "书山有路勤为径，学海无涯苦作舟！",
+  "专注是你最好的武器！",
+  "效率比时间更重要，但时间不可辜负！",
+  "今日事今日毕，明日还有明日事！",
+  "你的潜力，比你认知的更大！",
+  "成功没有捷径，唯有坚持！",
+  "每天多学一点，每年就是一大步！",
+  "错题不可怕，不改错才可怕！",
+  "学习是世界上回报率最高的投资！",
+  "坚持每天打卡，离梦想更近一步！",
+  "你今天的坚持，是你未来的底气！",
+  "别小看每天的积累，滴水可以穿石！",
+  "信心比黄金更重要！",
+  "相信积累的力量，时间会给你答案！",
+  "做对题目是本事，改对错题是成长！",
+  "刷题路上，你不是一个人在战斗！",
+  "每一次练习，都是在为考试做准备！",
+  "量变引起质变，继续刷！",
+  "知识改变命运，学习改变人生！",
+  "备考的辛苦，换来的是未来的从容！",
+  "坚持就是胜利，继续加油！",
+  "你已经比昨天的自己更强了！",
+  "学习这件事，永远不会白费！",
+  "一分耕耘一分收获，继续努力！",
+  "通往成功的路上，没有捷径！",
+  "每天进步一点点，成功就在眼前！",
+  "学习的苦，是人生最轻的苦！",
+  "稳扎稳打，步步为营！",
+  "坚持刷题，你就是下一个黑马！",
+  "不要停下，你的目标就在前方！",
+  "每一步都算数，继续前行！",
+  "学习的路上，没有白走的路！",
+  "你只管努力，剩下的交给时间！",
+  "坚持到底，就是赢家！",
+  "备考是一场修行，修心比刷题更重要！",
+  "别急，慢慢来，比较快！",
+  "保持节奏，稳步前进！",
+  "你比自己想象的更出色！",
+  "坚持学习的人，运气都不会差！",
+  "每一道题都是一次成长的机会！",
+  "别放弃，最难的时刻往往是黎明前的黑暗！",
+  "今天的苦，是明天的甜！",
+  "学习的投资，回报是终身的！",
+  "刷题一时苦，不刷苦一生！",
+  "每天给自己一个微笑，打卡开始！",
+  "坚持打卡，让努力看得见！",
+  "你正在为自己的人生投票！",
+  "每一次练习，都是对自己的奖赏！",
+  "学习的路上，孤独也是一种修行！",
+  "保持初心，继续前行！",
+  "成功=坚持+方法+心态！",
+  "刷题不在多，在懂；在懂，在透！",
+  "备考路上，不要忘记为什么出发！",
+  "每天坚持一点点，你会感谢现在的自己！",
+  "学习是最值得的投资！",
+  "不要被错题打败，要被错题激励！",
+  "你只管努力，时间是公平的见证者！",
+  "坚持梦想，不负韶华！",
+  "每天进步1%，坚持365天，你会惊艳自己！",
+  "备考是一个人的战斗，也是一群人的陪伴！",
+  "相信积累的力量，时间不会辜负每一个努力的人！",
+  "刷题是技术，更是艺术！",
+  "坚持，是一种态度，更是一种习惯！",
+  "成功路上没有偶然，只有必然的努力！",
+  "学习改变命运，知识创造未来！",
+  "不要怕慢，只怕站！",
+  "每天坚持一点点，成功就在不远处等你！",
+  "你做的每一道题，都在为你的梦想加砖添瓦！",
+  // 新增100句
+  "星光不负赶路人，时光不负有心人！",
+  "今天的努力，是明天最好的礼物！",
+  "每一次坚持，都在雕刻更好的自己！",
+  "你走的每一步，都算数！",
+  "别让明天的你，讨厌今天的自己！",
+  "成功的路上并不拥挤，因为坚持的人不多！",
+  "刷题如登山，坚持到顶峰才能看到风景！",
+  "今天的你，已经超越了昨天！",
+  "每一次打卡，都是对自己的承诺！",
+  "学习是一束光，照亮前行的路！",
+  "你的坚持，终将美好！",
+  "每一道题目，都是通向成功的台阶！",
+  "不忘初心，方得始终！",
+  "你的努力，时间都看得见！",
+  "今天的付出，是明天的收获！",
+  "坚持不是一天的事，而是一辈子的事！",
+  "你正在创造属于自己的奇迹！",
+  "每一次突破，都是成长的印记！",
+  "学习是一种态度，坚持是一种力量！",
+  "你比自己想象中更坚韧！",
+  "每一次失败，都是成功的伏笔！",
+  "刷题的路上，风景很美！",
+  "你的坚持，正在改变命运！",
+  "今天多学一点，明天少求人！",
+  "每一次努力，都在为未来加分！",
+  "你是最棒的，别怀疑自己！",
+  "学习的路上，你从不孤单！",
+  "坚持是一种信仰，成功是一种习惯！",
+  "每一次打卡，都是对自己的肯定！",
+  "你正在为自己的未来投资！",
+  "学习是一场旅行，坚持是门票！",
+  "你的努力，正在闪闪发光！",
+  "每一次挑战，都是成长的机会！",
+  "今天的学习，明天的底气！",
+  "坚持到底，胜利属于你！",
+  "你的每一份努力，都值得被看见！",
+  "学习是一种修行，坚持是一种境界！",
+  "你正在成为更好的自己！",
+  "每一次进步，都值得庆祝！",
+  "坚持的人，运气不会太差！",
+  "你的坚持，正在开花结果！",
+  "学习是一扇门，坚持是钥匙！",
+  "你正在书写属于自己的故事！",
+  "每一次努力，都是对未来的告白！",
+  "今天的坚持，明天的骄傲！",
+  "你的潜力，正在被激发！",
+  "学习是一种享受，坚持是一种幸福！",
+  "你正在为自己的人生负责！",
+  "每一次打卡，都是对自己的奖励！",
+  "你的努力，正在被世界看见！",
+  "学习是一座桥，坚持是基石！",
+  "你正在创造属于自己的辉煌！",
+  "每一次突破，都是对自己的超越！",
+  "今天的付出，明天的回报！",
+  "你的坚持，正在引领未来！",
+  "学习是一种能力，坚持是一种品质！",
+  "你正在为自己的梦想买单！",
+  "每一次坚持，都是对自己的承诺！",
+  "你的努力，正在照亮前路！",
+  "学习是一盏灯，坚持是火焰！",
+  "你正在成为你想要成为的人！",
+  "每一次进步，都是对自己的肯定！",
+  "今天的坚持，明天的成功！",
+  "你的坚持，正在改变世界！",
+  "学习是一种享受，坚持是一种智慧！",
+  "你正在为自己的人生加分！",
+  "每一次努力，都在为梦想蓄力！",
+  "你的坚持，正在创造奇迹！",
+  "学习是一条路，坚持是方向！",
+  "你正在为自己的未来铺路！",
+  "每一次打卡，都是对自己的信任！",
+  "你的努力，正在被时间铭记！",
+  "学习是一种力量，坚持是一种信念！",
+  "你正在成为最好的自己！",
+  "每一次突破，都是对自己的证明！",
+  "今天的努力，明天的光芒！",
+  "你的坚持，正在书写传奇！",
+  "学习是一种态度，坚持是一种勇气！",
+  "你正在为自己的梦想奋斗！",
+  "每一次坚持，都是对自己的投资！",
+  "你的努力，正在开花结果！",
+  "学习是一把钥匙，坚持是门！",
+  "你正在为自己的人生导航！",
+  "每一次进步，都是对自己的奖赏！",
+  "今天的坚持，明天的荣耀！",
+  "你的坚持，正在照亮梦想！",
+  "学习是一种修行，坚持是一种智慧！",
+  "你正在为自己的未来奠定基础！",
+  "每一次努力，都在为成功做准备！",
+  "你的坚持，正在改变命运！",
+  "学习是一场旅程，坚持是风景！",
+  "你正在成为自己的英雄！",
+  "每一次打卡，都是对自己的赞美！",
+  "你的努力，正在成就梦想！",
+  "学习是一座山，坚持是攀登！",
+  "你正在为自己的人生添砖加瓦！",
+  "每一次坚持，都是对自己的成就！",
+  "你的坚持，正在创造未来！",
+  "每一次学习，都是对自己的投资！",
+  "你的努力，正在书写辉煌！",
+  "坚持就是胜利！"
+];
+
+var ENCOURAGE_POOL_LENGTH = ENCOURAGE_POOL.length;
+
+// ========== 日历数据管理 ==========
+var CalendarData = {
+  KEY: 'hqwx_calendar_v1',
+
+  getAll: function() {
+    var raw = localStorage.getItem(this.KEY);
+    if (!raw) return { records: {}, streak: 0, total: 0, totalLearn: 0 };
+    try { return JSON.parse(raw); } catch(e) { return { records: {}, streak: 0, total: 0, totalLearn: 0 }; }
+  },
+
+  save: function(data) {
+    localStorage.setItem(this.KEY, JSON.stringify(data));
+  },
+
+  getTodayKey: function(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  },
+
+  isCheckedToday: function() {
+    var data = this.getAll();
+    return !!data.records[this.getTodayKey()];
+  },
+
+  checkin: function() {
+    var data = this.getAll();
+    var key = this.getTodayKey();
+    if (data.records[key]) return false; // already checked in
+    data.records[key] = { date: key };
+    data.total += 1;
+    data.totalLearn += 1;
+    // Calculate streak
+    data.streak = this.calcStreak(data.records);
+    this.save(data);
+    return true;
+  },
+
+  calcStreak: function(records) {
+    var streak = 0;
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    // Walk backwards from today
+    for (var i = 0; i < 365; i++) {
+      var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      if (records[key]) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  },
+
+  incrementLearn: function() {
+    var data = this.getAll();
+    data.totalLearn += 1;
+    this.save(data);
+  }
+};
+
+// ========== 日历渲染 ==========
+var currentCalYear = new Date().getFullYear();
+var currentCalMonth = new Date().getMonth();
+
+function renderCalendar() {
+  var d = new Date(currentCalYear, currentCalMonth, 1);
+  document.getElementById('calNavTitle').textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月';
+
+  var grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+
+  var weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+  weekDays.forEach(function(w) {
+    var wd = document.createElement('div');
+    wd.className = 'calendar-weekday';
+    wd.textContent = w;
+    grid.appendChild(wd);
+  });
+
+  var firstDow = new Date(currentCalYear, currentCalMonth, 1).getDay();
+  for (var i = 0; i < firstDow; i++) {
+    var empty = document.createElement('div');
+    empty.className = 'calendar-day empty';
+    grid.appendChild(empty);
+  }
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  var calData = CalendarData.getAll();
+  var daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var cell = document.createElement('div');
+    cell.className = 'calendar-day';
+
+    var cellDate = new Date(currentCalYear, currentCalMonth, day);
+    cellDate.setHours(0, 0, 0, 0);
+    cellDate.setDate(cellDate.getDate() + 1); // trick to compare properly
+    var cellDate2 = new Date(currentCalYear, currentCalMonth, day);
+    cellDate2.setHours(0, 0, 0, 0);
+
+    var isFuture = cellDate2 > today;
+    var isToday = cellDate2.getTime() === today.getTime();
+    var key = currentCalYear + '-' + String(currentCalMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var isChecked = !!calData.records[key];
+
+    if (isToday) cell.classList.add('today');
+    if (isChecked && !isToday) cell.classList.add('checked');
+    if (isFuture) cell.classList.add('future');
+
+    cell.textContent = day;
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('streakDays').textContent = calData.streak;
+  document.getElementById('totalDays').textContent = calData.total;
+  document.getElementById('totalLearn').textContent = calData.totalLearn;
+}
+
+function changeMonth(dir) {
+  currentCalMonth += dir;
+  if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
+  if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
+  renderCalendar();
+}
+
+// ========== 打卡 Banner ==========
+function updateCheckinBanner() {
+  var banner = document.getElementById('checkinBanner');
+  var icon = document.getElementById('bannerIcon');
+  var text = document.getElementById('bannerText');
+  var sub = document.getElementById('bannerSub');
+
+  var checked = CalendarData.isCheckedToday();
+  if (checked) {
+    banner.classList.add('checked');
+    banner.classList.remove('hidden');
+    icon.textContent = '🎉';
+    text.textContent = '今日已打卡！';
+    sub.textContent = '太棒了，继续保持！';
+  } else {
+    banner.classList.remove('checked');
+    banner.classList.add('hidden');
+  }
+}
+
+function doCheckin() {
+  if (CalendarData.isCheckedToday()) {
+    alert('今日已打卡，无需重复打卡！');
+    return;
+  }
+  CalendarData.checkin();
+  updateCheckinBanner();
+  renderCalendar();
+  // Show encourage message
+  var idx = Math.floor(Math.random() * ENCOURAGE_POOL_LENGTH);
+  alert('🎉 打卡成功！\\n\\n' + ENCOURAGE_POOL[idx]);
+}
+
+// ========== 鼓励弹窗控制 ==========
+function showEncourageModal(needCheckin) {
+  var modal = document.getElementById('encourageModal');
+  var title = document.getElementById('encourageTitle');
+  var text = document.getElementById('encourageText');
+  var icon = document.getElementById('encourageIcon');
+  var checkinBtn = document.getElementById('encourageCheckinBtn');
+  
+  // 随机选择鼓励语
+  var idx = Math.floor(Math.random() * ENCOURAGE_POOL_LENGTH);
+  text.textContent = ENCOURAGE_POOL[idx];
+  
+  if (needCheckin) {
+    // 未打卡：显示打卡按钮
+    icon.textContent = '🌟';
+    title.textContent = '新的一天开始啦！';
+    checkinBtn.style.display = 'inline-flex';
+  checkinBtn.textContent = '📅 立即打卡';
+  checkinBtn.onclick = goCheckin;
+  } else {
+    // 已打卡：隐藏打卡按钮
+    icon.textContent = '🎉';
+    title.textContent = '欢迎回来！';
+    checkinBtn.style.display = 'none';
+  }
+  
+  modal.classList.add('active');
+}
+
+function closeEncourage() {
+  document.getElementById('encourageModal').classList.remove('active');
+}
+
+function goCheckin() {
+  closeEncourage();
+  showCalendar();
+  // 自动执行打卡
+  setTimeout(function() {
+    if (!CalendarData.isCheckedToday()) {
+      doCheckin();
+    }
+  }, 300);
+}
+
+// 点击日历按钮时显示鼓励弹窗
+function showCalendarEncourage() {
+  var needCheckin = !CalendarData.isCheckedToday();
+  showEncourageModal(needCheckin);
+}
+
+// ========== 启动时显示鼓励弹窗 ==========
+var _checkedTodayThisSession = false;
+
+function checkFirstVisitToday() {
+  if (_checkedTodayThisSession) return;
+  _checkedTodayThisSession = true;
+
+  if (!AuthService.isLoggedIn()) return;
+
+  // 每次进入都显示鼓励弹窗
+  var needCheckin = !CalendarData.isCheckedToday();
+  
+  // 延迟显示弹窗，等待页面完全加载
+  setTimeout(function() {
+    showEncourageModal(needCheckin);
+  }, 500);
+}
+
+
+var API_BASE = 'https://odd-scene-26d8.wshu70682.workers.dev';
+
+function getCurrentUserId() {
+  var user = AuthService.getCurrentUser();
+  return user ? user.username : null;
+}
+
+function showTeam() {
+  var modal = document.getElementById('teamModal');
+  modal.classList.add('active');
+  loadMyTeam();
+}
+
+function closeTeam() {
+  document.getElementById('teamModal').classList.remove('active');
+}
+
+async function createTeam() {
+  var nameInput = document.getElementById('teamNameInput');
+  var name = nameInput.value.trim();
+  if (!name) { alert('请输入队伍名称'); return; }
+  var userId = getCurrentUserId();
+  if (!userId) { alert('请先登录'); return; }
+  try {
+    var res = await fetch(API_BASE + '/api/team', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, captain_id: userId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      nameInput.value = '';
+      document.getElementById('myTeamIdDisplay').textContent = data.team_id;
+      document.getElementById('teamIdBox').style.display = 'block';
+      alert('队伍创建成功，队伍ID: ' + data.team_id + '\n快分享给小伙伴加入吧');
+      loadMyTeam();
+    } else {
+      alert(data.error || '创建失败');
+    }
+  } catch (e) {
+    alert('创建失败，请检查网络');
+  }
+}
+
+async function joinTeam() {
+  var teamIdInput = document.getElementById('teamIdInput');
+  var teamId = teamIdInput.value.trim();
+  if (!teamId) { alert('请输入队伍ID'); return; }
+  var userId = getCurrentUserId();
+  if (!userId) { alert('请先登录'); return; }
+  try {
+    var res = await fetch(API_BASE + '/api/team/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, team_id: teamId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      teamIdInput.value = '';
+      alert('加入成功！');
+      loadMyTeam();
+    } else {
+      alert(data.error || '加入失败');
+    }
+  } catch (e) {
+    alert('加入失败，请检查网络');
+  }
+}
+
+async function leaveTeam() {
+  var userId = getCurrentUserId();
+  var teamId = document.getElementById('leaveTeamBtn').dataset.teamId;
+  if (!confirm('确定要退出这个队伍吗？')) return;
+  try {
+    var res = await fetch(API_BASE + '/api/team/leave', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, team_id: teamId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      loadMyTeam();
+    } else {
+      alert(data.error || '退出失败');
+    }
+  } catch (e) {
+    alert('退出失败，请检查网络');
+  }
+}
+
+async function loadMyTeam() {
+  var userId = getCurrentUserId();
+  var content = document.getElementById('myTeamContent');
+  var idBox = document.getElementById('teamIdBox');
+  var leaveBtn = document.getElementById('leaveTeamBtn');
+  if (!userId) {
+    content.innerHTML = '<div class="team-empty"><div class="team-empty-icon">🔒</div><div>请先登录查看队伍</div></div>';
+    idBox.style.display = 'none';
+    leaveBtn.style.display = 'none';
+    return;
+  }
+  try {
+    var res = await fetch(API_BASE + '/api/team/my?user_id=' + encodeURIComponent(userId));
+    var data = await res.json();
+    if (data.team) {
+      document.getElementById('myTeamIdDisplay').textContent = data.team.id;
+      idBox.style.display = 'block';
+      var html = '<ul class="team-list">';
+      for (var i = 0; i < data.members.length; i++) {
+        var m = data.members[i];
+        html += '<li class="team-member"><div class="member-avatar">' + (m.is_vip ? '👑' : m.user_id.charAt(0).toUpperCase()) + '</div><div class="member-info"><div class="member-name">' + m.user_id + (m.is_vip ? '<span class="member-tag">队长</span>' : '') + '</div></div></li>';
+      }
+      html += '</ul>';
+      content.innerHTML = html;
+      leaveBtn.dataset.teamId = data.team.id;
+      leaveBtn.style.display = data.team.captain_id === userId ? 'none' : 'block';
+    } else {
+      content.innerHTML = '<div class="team-empty"><div class="team-empty-icon">👥</div><div>还没有队伍，快创建或加入一个吧</div></div>';
+      idBox.style.display = 'none';
+      leaveBtn.style.display = 'none';
+    }
+  } catch (e) {
+    content.innerHTML = '<div class="team-empty"><div class="team-empty-icon">⚠️</div><div>加载失败，请检查网络</div></div>';
+  }
+}
+
+function showRanking() {
+  var modal = document.getElementById('rankModal');
+  modal.classList.add('active');
+  loadRanking('questions');
+}
+
+function closeRanking() {
+  document.getElementById('rankModal').classList.remove('active');
+}
+
+function switchRankTab(type, btn) {
+  var tabs = document.querySelectorAll('.rank-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  btn.classList.add('active');
+  loadRanking(type);
+}
+
+async function loadRanking(type) {
+  var userId = getCurrentUserId();
+  var list = document.getElementById('rankList');
+  list.innerHTML = '<div class="rank-empty"><div class="empty-icon">🏆</div><div>加载中...</div></div>';
+  try {
+    var res = await fetch(API_BASE + '/api/ranking?type=' + type);
+    var data = await res.json();
+    if (!data.data || data.data.length === 0) {
+      list.innerHTML = '<div class="rank-empty"><div class="empty-icon">🏆</div><div>还没有排行榜数据</div></div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < data.data.length; i++) {
+      var item = data.data[i];
+      var pos = i + 1;
+      var posClass = pos === 1 ? 'gold' : pos === 2 ? 'silver' : pos === 3 ? 'bronze' : 'normal';
+      var isMe = item.id === userId;
+      var avatarClass = item.is_vip ? 'vip' : 'normal';
+      var avatarText = item.is_vip ? '👑' : (item.nickname || item.id).charAt(0).toUpperCase();
+      var value = '';
+      if (type === 'questions') {
+        value = '<span class="rank-num">' + item.total_questions + '</span><span class="rank-unit">题</span>';
+      } else if (type === 'checkin') {
+        value = '<span class="rank-num">' + item.checkin_days + '</span><span class="rank-unit">天</span>';
+      } else {
+        value = '<span class="rank-num">' + item.accuracy + '</span><span class="rank-unit">%</span>';
+      }
+      var nameExtra = '';
+      if (item.is_vip) nameExtra += ' <span class="vip-tag">VIP</span>';
+      if (isMe) nameExtra += ' <span class="me-tag">我</span>';
+      var sub = '';
+      if (type === 'questions') {
+        sub = '正确 ' + item.total_correct + ' 题 · 正确率 ' + item.accuracy + '%';
+      } else if (type === 'checkin') {
+        sub = '累计 ' + item.total_questions + ' 题 · 正确率 ' + item.accuracy + '%';
+      } else {
+        sub = '累计 ' + item.total_questions + ' 题 · 正确 ' + item.total_correct + ' 题';
+      }
+      html += '<li class="rank-item' + (isMe ? ' me' : '') + '">';
+      html += '<div class="rank-pos ' + posClass + '">' + pos + '</div>';
+      html += '<div class="rank-avatar ' + avatarClass + '">' + avatarText + '</div>';
+      html += '<div class="rank-info"><div class="rank-name">' + (isMe ? item.id : (item.nickname || item.id)) + nameExtra + '</div><div class="rank-sub">' + sub + '</div></div>';
+      html += '<div class="rank-value">' + value + '</div>';
+      html += '</li>';
+    }
+    list.innerHTML = html;
+  } catch (e) {
+    list.innerHTML = '<div class="rank-empty"><div class="empty-icon">⚠️</div><div>加载失败</div></div>';
+  }
+}
+
+function showSettings() {
+  var user = AuthService.getCurrentUser();
+  
+  // 更新设置面板用户信息
+  var settingsUserInfo = document.getElementById('settingsUserInfo');
+  var settingsAvatar = document.getElementById('settingsAvatar');
+  var settingsUsername = document.getElementById('settingsUsername');
+  var settingsUserType = document.getElementById('settingsUserType');
+  
+  if (user) {
+    settingsUsername.textContent = user.username;
+    
+    if (user.isVip) {
+      settingsUserInfo.classList.add('vip');
+      settingsAvatar.textContent = '👑';
+      settingsUserType.textContent = 'VIP用户';
+    } else {
+      settingsUserInfo.classList.remove('vip');
+      settingsAvatar.textContent = user.username.charAt(0).toUpperCase();
+      settingsUserType.textContent = '普通用户';
+    }
+  }
+  
+  // 显示弹窗
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.add('hidden');
+}
+
+function showProfile() {
+  alert('👤 个人资料功能开发中...');
+}
+
+function showDataManage() {
+  alert('📊 数据管理功能开发中...\n\n可导出/导入学习数据');
+}
+
+// 点击弹窗外部关闭
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('settingsModal');
+  if (e.target === modal) {
+    closeSettings();
+  }
+});
+
+// ============================================================
+// 模块9: 事件绑定
+// ============================================================
+
+// Enter键登录
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) {
+    handleLogin();
+  }
+});
+
+// ============================================================
+// 模块10: 初始化
+// ============================================================
+
+// 检测环境
+APP_CONFIG.env = detectEnvironment();
+
+// 启动应用
+checkLogin();
+
+// 定时刷新进度
+setInterval(loadProgress, 60000);
+
+// 页面重新获得焦点时立即刷新进度（从子页面返回时触发）
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) loadProgress();
+});
+window.addEventListener('focus', function() {
+  loadProgress();
+});
+
 </script>
+  <!-- 鼓励弹窗 -->
+  <div class="encourage-modal" id="encourageModal">
+    <div class="modal-backdrop" onclick="closeEncourage()"></div>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeEncourage()">✕</button>
+      <div class="encourage-icon" id="encourageIcon">🌟</div>
+      <div class="encourage-title" id="encourageTitle">欢迎回来！</div>
+      <div class="encourage-text" id="encourageText">今天的你，比昨天更接近梦想一步！</div>
+      <div class="encourage-actions">
+        <button class="encourage-btn" id="encourageCheckinBtn" onclick="goCheckin()">📅 立即打卡</button>
+        <button class="encourage-btn secondary" onclick="closeEncourage()">开始学习</button>
+      </div>
+      <div class="encourage-footer">每天进步一点点 ✨</div>
+    </div>
+  </div>
+
+  <!-- 日历打卡弹窗 -->
+  <div class="calendar-modal" id="calendarModal">
+    <div class="modal-backdrop" onclick="closeCalendar()"></div>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeCalendar()">✕</button>
+      <div class="modal-header">
+        <h2>📅 学习日历</h2>
+        <p>每天进步一点点</p>
+      </div>
+      <div class="calendar-checkin-banner" id="checkinBanner" onclick="doCheckin()">
+        <div class="banner-icon" id="bannerIcon">🌟</div>
+        <div class="banner-text" id="bannerText">今日还未打卡</div>
+        <div class="banner-sub" id="bannerSub">点击这里立即打卡</div>
+      </div>
+      <div class="calendar-nav">
+        <button onclick="changeMonth(-1)">◀</button>
+        <span class="nav-title" id="calNavTitle">2026年4月</span>
+        <button onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="calendar-streak">
+        <div class="streak-item">
+          <div class="streak-num" id="streakDays">0</div>
+          <div class="streak-label">连续打卡</div>
+        </div>
+        <div class="streak-item">
+          <div class="streak-num" id="totalDays">0</div>
+          <div class="streak-label">累计打卡</div>
+        </div>
+        <div class="streak-item">
+          <div class="streak-num" id="totalLearn">0</div>
+          <div class="streak-label">累计学习</div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- 组队学习弹窗 -->
+  <div class="team-modal" id="teamModal">
+    <div class="modal-backdrop" onclick="closeTeam()"></div>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeTeam()">✕</button>
+      <div class="modal-header">
+        <h2>👥 组队学习</h2>
+        <p>和小伙伴一起刷题进步</p>
+      </div>
+      <div class="modal-section" id="teamSectionCreate">
+        <h3>📌 创建队伍</h3>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="teamNameInput" placeholder="输入队伍名称" maxlength="20">
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="createTeam()">创建队伍</button>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h3>🔗 加入队伍</h3>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="teamIdInput" placeholder="输入队伍ID" style="flex:1">
+          <button class="btn-secondary" onclick="joinTeam()">加入</button>
+        </div>
+      </div>
+      <div id="teamIdBox" class="team-id-box" style="display:none">
+        <div class="team-id-label">你的队伍ID（分享给队友）</div>
+        <div class="team-id-value" id="myTeamIdDisplay">-</div>
+      </div>
+      <div class="modal-section" style="margin-top:16px">
+        <h3>👥 队伍成员</h3>
+        <div id="myTeamContent">
+          <div class="team-empty">
+            <div class="team-empty-icon">👥</div>
+            <div>还没有队伍，快创建或加入一个吧</div>
+          </div>
+        </div>
+        <div id="leaveTeamBtn" style="margin-top:10px;display:none">
+          <button class="btn-danger" style="width:100%" onclick="leaveTeam()">退出队伍</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 排行榜弹窗 -->
+  <div class="rank-modal" id="rankModal">
+    <div class="modal-backdrop" onclick="closeRanking()"></div>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeRanking()">✕</button>
+      <div class="modal-header">
+        <h2>🏆 学习排行榜</h2>
+        <p>看看你的学习排名</p>
+      </div>
+      <div class="rank-tabs">
+        <button class="rank-tab active" onclick="switchRankTab('questions', this)">📊 做题数</button>
+        <button class="rank-tab" onclick="switchRankTab('checkin', this)">📅 打卡天数</button>
+        <button class="rank-tab" onclick="switchRankTab('accuracy', this)">🎯 正确率</button>
+      </div>
+      <ul class="rank-list" id="rankList">
+        <div class="rank-empty">
+          <div class="empty-icon">🏆</div>
+          <div>加载中...</div>
+        </div>
+      </ul>
+    </div>
+  </div>
 </body>
 </html>
